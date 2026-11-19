@@ -14,7 +14,9 @@ Read and change ArduPilot parameters from an EdgeTX or Ethos radio, without a la
 | EdgeTX colour (RadioMaster TX16S, EdgeTX 2.12.5) | ELRS |
 | EdgeTX black and white (RadioMaster TX12 MK2, EdgeTX 2.12.2) | ELRS |
 | FrSky Ethos | ELRS |
-| EdgeTX | S.Port, F.Port, mLRS |
+| EdgeTX | mLRS |
+
+S.Port and F.Port are confirmed too (on one of the radios above).
 
 Not yet tested on a radio: mLRS on Ethos, the CUSTOM tab.
 
