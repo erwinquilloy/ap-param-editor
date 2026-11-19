@@ -80,12 +80,27 @@ local IO = {
   crsfOk = crossfireTelemetryPush ~= nil,
 }
 
+-- The first run compiles each .lua and saves a .luac beside it. Compiled while the others are in
+-- memory (with their debug info, as just compiled), the last one ran out on a TX12 MK2 (EdgeTX
+-- 2.12.2, 2026-11-19: "list.lua: not enough memory"; the second run, from .luac, used 83 of
+-- ~127 KB). So each file is compiled alone first and dropped; the real loads then read the
+-- smaller .luac. Once the .luac files are there this only reads them.
+local function precompile(files)
+  for i = 1, #files do
+    pcall(loadScript, ROOT .. files[i], "bt")
+    collectgarbage()
+    collectgarbage()
+  end
+end
+
 local function init()
   local ok, e = pcall(function()
+    colour = lcd.RGB ~= nil and (LCD_W or 0) >= 320
+    local ui = colour and "ui_color.lua" or "ui_bw.lua"
+    precompile({ "core.lua", "list.lua", ui })
     C = load("core.lua")(IO)
     if type(APPARAM_TEST) == "table" then APPARAM_TEST.C = C end   -- off-radio tests only
-    colour = lcd.RGB ~= nil and (LCD_W or 0) >= 320
-    U = load(colour and "ui_color.lua" or "ui_bw.lua")(C, TITLE)
+    U = load(ui)(C, TITLE)
   end)
   if not ok then err = tostring(e) end
   collectgarbage()

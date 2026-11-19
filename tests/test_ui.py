@@ -207,8 +207,17 @@ def edgetx_entry(ver):
         return queue.pop(0)
     G.sportTelemetryPop = L.eval('function(pop) return function() local f = pop() if f == nil then return nil end '
                                  'return f[1], f[2], f[3], f[4] end end')(lambda: (L.table_from(queue.pop(0)) if queue else None))
+    L.execute('''
+      LOADS = {}
+      local ls = loadScript
+      loadScript = function(p, m) LOADS[#LOADS + 1] = p return ls(p, m) end
+    ''')
     tool = L.eval('dofile')(root + '/SCRIPTS/TOOLS/APParam.lua')
     tool.init()
+    # TX12 MK2 first run: each file compiled alone (and dropped) before any is kept in memory
+    loads = [G.LOADS[i + 1].split('/')[-1] for i in range(len(G.LOADS))]
+    check(loads[:3] == ['core.lua', 'list.lua', 'ui_color.lua'] and loads[3:5] == ['core.lua', 'ui_color.lua'],
+          'precompile order: %s' % loads)
     events = {i: v for i, v in enumerate([0] * 400)}
     events[200] = 3  # ENTER on the first tab: FLIGHT
     got = None
