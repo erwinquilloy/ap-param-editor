@@ -7,6 +7,17 @@ Read and change ArduPilot parameters from an EdgeTX or Ethos radio, without a la
 - **Tabs:** ArduPlane FLIGHT, LAUNCH, RETURN, FAILSAFE, ARMING (check-by-check skip editor), TECS, LANDING, PID, VTOL / Q PID (with Q_ENABLE 1), plus a CUSTOM tab from `custom.txt` for any parameter on any vehicle.
 - **Safety:** one request at a time, saves verified by read-back and never repeated automatically, view-only while armed unless Air edits is on (PID / trim only).
 
+## Tested on radios
+
+| Radio | Confirmed |
+| --- | --- |
+| EdgeTX colour (RadioMaster TX16S, EdgeTX 2.12.5) | ELRS |
+| EdgeTX black and white (RadioMaster TX12 MK2, EdgeTX 2.12.2) | ELRS |
+| FrSky Ethos | ELRS |
+| EdgeTX | S.Port, F.Port, mLRS |
+
+Not yet tested on a radio: mLRS on Ethos, the CUSTOM tab.
+
 Install and use: see [INSTALL.txt](INSTALL.txt).
 
 ## Layout
@@ -26,3 +37,7 @@ python tools/build.py
 python tests/test_core.py   # engine, every link, Lua 5.2 and 5.4
 python tests/test_ui.py     # screens at radio sizes -> tests/out/*.png, both entry scripts
 ```
+
+## License
+
+GPL-3.0, see [LICENSE](LICENSE).
