@@ -652,8 +652,12 @@ return function(io)
     -- the link: the mLRS bridge, else CRSF, else S.Port (whichever brought frames last 3 s)
     local want = C.source
     if want == "AUTO" then
-      want = (now - seenEnv < 3 and MV.found and "MAVLINK") or (crAlive(now) and "CRSF")
-        or (now - seenSp < 3 and "SPORT") or (now - seenEnv < 3 and "MAVLINK") or link
+      -- bridge frames (0xAA) come only from an mLRS cbridge, so they win at once, as in OmniDeck:
+      -- the HEARTBEAT that sets MV.found is parsed only on the MAVLINK link, and mLRS also sends
+      -- CRSF telemetry (native + passthrough), so waiting for it kept Auto on CRSF (radio,
+      -- 2026-11-19: "CRSF", then "No answer")
+      want = (now - seenEnv < 3 and "MAVLINK") or (crAlive(now) and "CRSF")
+        or (now - seenSp < 3 and "SPORT") or link
     end
     if want ~= link then
       link = want

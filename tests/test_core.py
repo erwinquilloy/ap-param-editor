@@ -127,6 +127,12 @@ class Rig:
                 C.crsf(cmd, lua_table(L, d))
             self.crsf_down = getattr(self, 'crsf_down', [])[2:]
         else:
+            # a real mLRS Tx also sends CRSF telemetry next to the bridge: native frames and
+            # ArduPilot passthrough (for Yaapu). Auto must still take the bridge (radio, 2026-11-19:
+            # "CRSF", then "No answer").
+            if int(self.t * 10) % 5 == 0:
+                C.crsf(0x80, lua_table(L, [0xF0, 0x01, 0x50, 0, 1 if self.ap.armed else 0, 0, 0]))
+                C.crsf(0x08, lua_table(L, [0, 160, 0, 10, 0, 0, 0, 80]))
             self.ap.tick(self.t)
             for fr in self.ap.frames():
                 C.crsf(0xAA, lua_table(L, fr))
