@@ -4,6 +4,7 @@ Read and change ArduPilot parameters from an EdgeTX or Ethos radio, without a la
 
 - **Radios:** EdgeTX colour (any screen size, touch) and black-and-white (128x64, 212x64); FrSky Ethos (System > Tools).
 - **Links:** S.Port / F.Port passthrough (any ArduPilot, MAVlite), ELRS / TBS (ArduPlane Stratos v2.2.1+, MAVlite over CRSF), mLRS cbridge (any ArduPilot, MAVLink). The telemetry source can be Auto or chosen by hand.
+- **Not supported: ELRS in MAVLink mode** (ELRS Lua "Link Mode" = MAVLink), with any firmware. The ELRS receiver passes only MAVLink to the flight controller and the ELRS module returns only telemetry, so parameter requests and answers never get through. Use Link Mode = Normal (CRSF), or S.Port / F.Port, or mLRS with cbridge.
 - **Tabs:** ArduPlane FLIGHT, LAUNCH, RETURN, FAILSAFE, ARMING (check-by-check skip editor), TECS, LANDING, PID, VTOL / Q PID (with Q_ENABLE 1), plus a CUSTOM tab from `custom.txt` for any parameter on any vehicle.
 - **Safety:** one request at a time, saves verified by read-back and never repeated automatically, view-only while armed unless Air edits is on (PID / trim only).
 

@@ -19,6 +19,10 @@ TELEMETRY (pick it on the first screen: "Telemetry", or leave it on Auto)
   ELRS / TBS (CRSF)    ArduPlane Stratos v2.2.1 or later (parameters over CRSF)
   mLRS (MAVLink)       any ArduPilot; in the mLRS Tx module set Tx Ser Port = cbridge
   Auto uses whichever brings ArduPilot telemetry. The choice is kept in settings.txt.
+  NOT SUPPORTED: ELRS in MAVLink mode (ELRS Lua "Link Mode" = MAVLink), with any firmware.
+                       The ELRS receiver passes only MAVLink to the flight controller and
+                       the ELRS module returns only telemetry: parameter requests never get
+                       through. Set Link Mode = Normal (CRSF), or use S.Port / F.Port, or mLRS.
 
 USE
   Wheel or +/-    move; in the editor: change the value
