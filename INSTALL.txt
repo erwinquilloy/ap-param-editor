@@ -1,1 +1,40 @@
-placeholder
+AP Param Editor - read and change ArduPilot parameters from your radio
+=======================================================================
+
+INSTALL
+  EdgeTX (colour or black-and-white radios, EdgeTX 2.9 or later)
+    Copy the SCRIPTS folder from the zip to the SD card root (it merges with yours):
+      /SCRIPTS/TOOLS/APParam.lua
+      /SCRIPTS/APPARAM/   (core.lua, list.lua, ui_color.lua, ui_bw.lua, custom.txt)
+    Run it: SYS > Tools > AP Param Editor
+
+  FrSky Ethos (X20, X20S, X18, X10, X12 ...)
+    Copy the scripts folder from the zip to the SD card root:
+      /scripts/apparam/   (main.lua, icon.png, core.lua, list.lua, ui_color.lua, custom.txt)
+    Restart the radio. Run it: System > Tools > AP Param Editor (the slider icon)
+
+TELEMETRY (pick it on the first screen: "Telemetry", or leave it on Auto)
+  S.Port / F.Port      any ArduPilot with FrSky passthrough telemetry
+                       (SERIALn_PROTOCOL 10 on the receiver's port, or F.Port with passthrough)
+  ELRS / TBS (CRSF)    ArduPlane Stratos v2.2.1 or later (parameters over CRSF)
+  mLRS (MAVLink)       any ArduPilot; in the mLRS Tx module set Tx Ser Port = cbridge
+  Auto uses whichever brings ArduPilot telemetry. The choice is kept in settings.txt.
+
+USE
+  Wheel or +/-    move; in the editor: change the value
+  ENTER           open a tab / a row; in the editor: Save
+  RTN             back; on the tab list: leave
+  Touch screens   tap a row to select it, tap again to open it; drag to scroll;
+                  editor buttons -10 / - / + / +10, Back, Save
+
+  A value is "Saved and verified" only when the flight controller reads back the same value.
+  A save is sent once: on "No answer: check in a GCS", look before trying again.
+  Armed: view only. "Air edits" ON allows the PID tabs and trim rows while armed (in flight
+  the change takes effect at once - small steps).
+  "n/a" = this flight controller has no such parameter (another vehicle or firmware version).
+  The VTOL tabs appear when Q_ENABLE = 1.
+
+CUSTOM TAB
+  Edit custom.txt (in /SCRIPTS/APPARAM/ or /scripts/apparam/): one parameter per line,
+    NAME, label, min, max, step
+  Only NAME is needed. Any vehicle (Copter, Rover...) works this way. Up to 40 lines.
