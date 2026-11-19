@@ -335,6 +335,7 @@ def ethos_entry():
       local s1 = sensor()
       crsf = { getSensor = function() if not S1 then S1 = s1 return s1 end return { popFrame = function() return nil end, pushFrame = function() return true end } end }
     ''')
+    G.APPARAM_TEST = L.table()
     L.eval('dofile')(root + '/main.lua').init()
     T = G.TOOL
     check(T is not None and T.name == 'AP Param Editor' and T.icon == 'icon.png', 'registered with icon')
@@ -343,6 +344,7 @@ def ethos_entry():
         R.t += 0.05
         if int(R.t * 10) % 5 == 0:
             G.DOWN[len(G.DOWN) + 1] = L.table_from([0x80, L.table_from([0xF0, 0x01, 0x50, 0, 0, 0, 0])])
+        G.DOWN[len(G.DOWN) + 1] = L.table_from([0x1E, L.table_from([1, 2, 3, 4, 5, 6])])   # attitude (native)
         for cmd, d in getattr(R, 'crsf_down', []):
             G.DOWN[len(G.DOWN) + 1] = L.table_from([cmd, L.table_from(d)])
         R.crsf_down = []
@@ -353,12 +355,19 @@ def ethos_entry():
         R.t += 0.05
         if int(R.t * 10) % 5 == 0:
             G.DOWN[len(G.DOWN) + 1] = L.table_from([0x80, L.table_from([0xF0, 0x01, 0x50, 0, 0, 0, 0])])
+        G.DOWN[len(G.DOWN) + 1] = L.table_from([0x1E, L.table_from([1, 2, 3, 4, 5, 6])])   # attitude (native)
         for cmd, d in getattr(R, 'crsf_down', []):
             G.DOWN[len(G.DOWN) + 1] = L.table_from([cmd, L.table_from(d)])
         R.crsf_down = []
         T.wakeup(w)
         T.paint(w)
     check(0x80 in pushed and 0xAA in pushed, 'pushed MAVlite and heartbeat: %s' % sorted(set(pushed)))
+    EC = G.APPARAM_TEST.C
+    got, n = EC.progress()
+    print('   link %s, %s/%s FLIGHT rows answered, %s' % (EC.link, got, n, EC.diagText()))
+    check(EC.link == 'CRSF' and EC.blocked is None, 'Ethos on CRSF, not blocked')
+    check(EC.diag.crNat > 0, 'native frames reach the engine through the one CRSF reader')
+    check(n > 0 and got == n, 'Ethos read the open tab')
     T.event(w, 1, 13, 0, 0)
     check(not G.EXITED, 'RTN from rows only goes back')
     T.event(w, 1, 13, 0, 0)

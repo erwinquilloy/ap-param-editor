@@ -6,9 +6,10 @@
   Files in /scripts/apparam/: core.lua (links, requests), list.lua (tabs), ui_color.lua (screen),
   custom.txt (CUSTOM tab), settings.txt (telemetry source).
 
-  Ethos hands every reader its own copy of the frames, and a pop with a type range drops the
-  frames outside it for that reader: so one CRSF reader for the passthrough / MAVlite types
-  (0x7F-0x80), another for the mLRS bridge (0xAA), as OmniDeck learnt (X20S + mLRS 2026-11-14).
+  Ethos hands every reader its own copy of the frames (no shared queue as on EdgeTX), and a pop
+  with a type range DROPS the frames outside it for that reader (X20S + mLRS 2026-11-14). So the
+  one CRSF reader here pops with no range: passthrough / MAVlite (0x7F-0x80), the FC's native
+  frames (they keep a slow ELRS link counted as alive) and the mLRS bridge (0xAA) all come through.
 ]]
 local DIR = "/scripts/apparam/"
 local NAME = "AP Param Editor"
@@ -20,12 +21,18 @@ local IO = {
   loadList = function() return mod("list.lua") end,
   customPath = DIR .. "custom.txt",
   settingsPath = DIR .. "settings.txt",
+  -- line by line, as OmniDeck reads its files on Ethos
   readFile = function(path)
     local ok, f = pcall(io.open, path, "r")
     if not ok or not f then return nil end
-    local s = f:read("a")
-    f:close()
-    return s
+    local lines = {}
+    for _ = 1, 200 do
+      local ok2, l = pcall(f.read, f, "*l")
+      if not ok2 or l == nil then break end
+      lines[#lines + 1] = l
+    end
+    pcall(f.close, f)
+    return table.concat(lines, "\n")
   end,
   writeFile = function(path, s)
     local ok, f = pcall(io.open, path, "w")
@@ -36,7 +43,7 @@ local IO = {
 }
 
 -- ---------------------------------------------------------------- readers
-local sp, spMav, cr, crBridge = nil, nil, nil, nil
+local sp, spMav, cr = nil, nil, nil
 local function sensors()
   if sport and sport.getSensor and not sp then
     local ok, s = pcall(sport.getSensor, { appIdStart = 0x5000, appIdEnd = 0x50FF })
@@ -47,8 +54,6 @@ local function sensors()
   if crsf and crsf.getSensor and not cr then
     local ok, s = pcall(crsf.getSensor)
     cr = ok and s or false
-    ok, s = pcall(crsf.getSensor)
-    crBridge = ok and s or false
   end
 end
 
@@ -79,16 +84,9 @@ local function drain()
     end
   end
   if cr then
-    for _ = 1, 24 do
-      local ok, cmd, data = pcall(cr.popFrame, cr, 0x7F, 0x80)
+    for _ = 1, 48 do
+      local ok, cmd, data = pcall(cr.popFrame, cr)
       if not ok or cmd == nil then break end
-      C.crsf(cmd, data)
-    end
-  end
-  if crBridge then
-    for _ = 1, 6 do
-      local ok, cmd, data = pcall(crBridge.popFrame, crBridge, 0xAA, 0xAA)
-      if not ok or cmd ~= 0xAA or data == nil then break end
       C.crsf(cmd, data)
     end
   end
@@ -131,6 +129,7 @@ end
 local lastPaint = 0
 local function create()
   C = mod("core.lua")(IO)
+  if type(APPARAM_TEST) == "table" then APPARAM_TEST.C = C end   -- off-radio tests only
   U = mod("ui_color.lua")(C, NAME)
   G = nil
   return {}
