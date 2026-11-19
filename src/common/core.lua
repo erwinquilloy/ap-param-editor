@@ -128,6 +128,14 @@ return function(io)
   local clock = io.clock
 
   local seenSp, seenCr, seenEnv, lastRx = -100, -100, -100, -100
+  -- CRSF: ArduPilot's passthrough frames (0x80 F0-F4) say who is there, but on a slow ELRS / TBS
+  -- telemetry rate they can be seconds apart. The native frames the FC sends (GPS, battery,
+  -- attitude, flight mode...) keep the link counted as alive for 30 s after the last passthrough.
+  local seenCrNat = -100
+  local NATIVE = { [0x02] = true, [0x07] = true, [0x08] = true, [0x09] = true, [0x1E] = true, [0x21] = true }
+  -- what came in: shown on the "No ... telemetry" screen (frames since the tool opened)
+  C.diag = { cr = 0, crPt = 0, crNat = 0, sp = 0, spPt = 0, env = 0 }
+  local function crAlive(now) return now - seenCr < 3 or (now - seenCrNat < 3 and now - seenCr < 30) end
   local function heard(t) lastRx = t C.fc = "ArduPilot" end
   function C.alive() return clock() - lastRx < 3 end
 
@@ -344,6 +352,7 @@ return function(io)
   function C.sport(primId, appId, value)
     if appId == nil or value == nil then return end
     local now = clock()
+    C.diag.sp = C.diag.sp + 1
     if primId == 0x32 then
       local lo, hi = split32(value)
       local b = { appId % 256, floor(appId / 256) % 256, lo % 256, floor(lo / 256), hi % 256, floor(hi / 256) }
@@ -371,7 +380,16 @@ return function(io)
   function C.crsf(cmd, d)
     if not d then return end
     local now = clock()
+    local D = C.diag
+    D.cr = D.cr + 1
+    if NATIVE[cmd] then
+      D.crNat = D.crNat + 1
+      seenCrNat = now
+      if now - seenCr < 30 then heard(now) end
+      return
+    end
     if cmd == 0xAA then
+      D.env = D.env + 1
       seenEnv = now
       if MV.found then heard(now) end
       if #envQ >= 16 then table.remove(envQ, 1) end
@@ -379,6 +397,7 @@ return function(io)
       return
     end
     if cmd ~= 0x80 and cmd ~= 0x7F then return end
+    D.crPt = D.crPt + 1
     local k = d[1]
     if k == 0xF4 then
       seenCr = now
@@ -583,7 +602,8 @@ return function(io)
     if src ~= "AUTO" then
       local now = clock()
       local seen = (src == "SPORT" and seenSp) or (src == "CRSF" and seenCr) or seenEnv
-      if now - seen >= 3 or (src == "MAVLINK" and not MV.found) then
+      local alive = (src == "CRSF" and crAlive(now)) or (src ~= "CRSF" and now - seen < 3)
+      if not alive or (src == "MAVLINK" and not MV.found) then
         local l = { "No " .. C.SOURCE_NAME[src] .. " telemetry" }
         if src == "MAVLINK" and now - seen < 3 then l[2] = "bridge on, no HEARTBEAT yet" end
         for _, h in ipairs(HINT[src]) do l[#l + 1] = h end
@@ -632,7 +652,7 @@ return function(io)
     -- the link: the mLRS bridge, else CRSF, else S.Port (whichever brought frames last 3 s)
     local want = C.source
     if want == "AUTO" then
-      want = (now - seenEnv < 3 and MV.found and "MAVLINK") or (now - seenCr < 3 and "CRSF")
+      want = (now - seenEnv < 3 and MV.found and "MAVLINK") or (crAlive(now) and "CRSF")
         or (now - seenSp < 3 and "SPORT") or (now - seenEnv < 3 and "MAVLINK") or link
     end
     if want ~= link then
@@ -812,6 +832,13 @@ return function(io)
   end
   function C.saving() return saveReq ~= nil or (pend ~= nil and (pend.set ~= nil or pend.check ~= nil)) end
 
+  -- one line for the "No ... telemetry" screen: frames since the tool opened, last passthrough
+  function C.diagText()
+    local D, now = C.diag, clock()
+    local function ago(t) return t < 0 and "-" or string.format("%.0fs", now - t) end
+    return string.format("CRSF %d (AP %d, native %d) last AP %s  S.Port %d  mLRS %d",
+      D.cr, D.crPt, D.crNat, ago(seenCr), D.sp, D.env)
+  end
   function C.debug()
     return string.format("%s tx%d rx%d bad%d q%d %s", tostring(link), C.stats.tx, C.stats.rx, C.stats.bad, #out,
       pend and pend.name or "-")

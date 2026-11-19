@@ -367,6 +367,7 @@ return function(C, title)
     local bH = math.max(g.fontH("m") + 14, floor(g.H / 8))
     button(g, 8, g.H - bH - 6, g.W - 16, bH, "Telemetry: " .. srcText(), function() C.nextSource() end)
     g.text(14, g.H - bH - 12 - g.fontH("s"), "ENTER / tap: change source    RTN: exit", "s", col.dim)
+    g.text(14, g.H - bH - 16 - 2 * g.fontH("s"), fit(g, C.diagText(), "s", g.W - 28), "s", col.dim)
   end
 
   function U.paint(g)

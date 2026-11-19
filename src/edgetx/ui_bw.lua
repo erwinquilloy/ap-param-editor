@@ -154,7 +154,9 @@ return function(C, title)
   local function drawBlocked()
     bar(up(title), nil)
     local l = C.blocked
-    for i = 1, math.min(#l, 4) do lcd.drawText(1, 1 + i * 9, up(l[i]), SMLSIZE) end
+    for i = 1, math.min(#l, 3) do lcd.drawText(1, 1 + i * 9, up(l[i]), SMLSIZE) end
+    local D = C.diag
+    lcd.drawText(1, 39, string.format("CR %d AP %d SP %d ML %d", D.cr, D.crPt, D.sp, D.env), SMLSIZE)
     lcd.drawText(1, 48, "SRC: " .. srcText(), SMLSIZE)
     lcd.drawText(1, 57, "ENT SOURCE  RTN EXIT", SMLSIZE)
   end
