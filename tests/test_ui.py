@@ -223,6 +223,80 @@ def edgetx_entry(ver):
     check(tool.run(4, None) == 1, 'EXIT on tab list leaves the tool')
 
 
+def edgetx_shared_queue(entry_path=None, label='built'):
+    """EdgeTX 2.12.5's ONE Lua telemetry byte queue (api_general.cpp): sportTelemetryPop takes 8 raw
+    bytes, crossfireTelemetryPop a length-prefixed frame. ELRS model (getModule Type 5), Auto."""
+    print('edgetx shared queue (%s)' % label)
+    R = Rig(52, 'crsf')
+    L = R.L
+    G = L.globals()
+    root = os.path.join(DIST, 'EdgeTX').replace(os.sep, '/')
+    G.ROOTDIR = root
+    L.execute('''
+      LCD_W, LCD_H = 480, 272
+      SMLSIZE, MIDSIZE, RIGHT, CENTER, INVERS, FORCE = 0x100, 0x200, 0x400, 0x800, 2, 1
+      EVT_VIRTUAL_NEXT, EVT_VIRTUAL_PREV, EVT_VIRTUAL_ENTER, EVT_VIRTUAL_EXIT = 1, 2, 3, 4
+      local t = 0
+      getTime = function() t = t + 5 return t end
+      loadScript = function(p, m) return loadfile(ROOTDIR .. p) end
+      lcd = { RGB = function(r, g, b) return r * 65536 + g * 256 + b end, clear = function() end,
+              drawFilledRectangle = function() end, drawRectangle = function() end, drawText = function() end,
+              sizeText = function(s, f) return #s * 9, 20 end }
+      model = { getModule = function(i) if i == 1 then return { Type = 5 } end return { Type = 0 } end }
+      Q = {}
+      function qpush(len, cmd, data)   -- what EdgeTX's CRSF receive puts in the queue
+        Q[#Q + 1] = len Q[#Q + 1] = cmd
+        for i = 1, #data do Q[#Q + 1] = data[i] end
+      end
+      sportTelemetryPop = function()
+        if #Q < 8 then return nil end
+        local b = {}
+        for i = 1, 8 do b[i] = table.remove(Q, 1) end
+        return b[1], b[2], b[3] + b[4] * 256, b[5] + b[6] * 256 + b[7] * 65536 + b[8] * 16777216
+      end
+      crossfireTelemetryPop = function()
+        if #Q == 0 or #Q < Q[1] then return nil end
+        local len = table.remove(Q, 1)
+        local cmd = table.remove(Q, 1)
+        local d = {}
+        for i = 1, len - 2 do d[i] = table.remove(Q, 1) end
+        return cmd, d
+      end
+    ''')
+    def push(cmd, data):
+        cmd = int(cmd); d = [int(data[i + 1]) for i in range(len(data))]
+        if cmd == 0x80: R.lite_crsf(d[4], bytes(d[5:]))
+        return True
+    G.crossfireTelemetryPush = push
+    G.sportTelemetryPush = lambda *a: True
+    tool = L.eval('dofile')(entry_path or (root + '/SCRIPTS/TOOLS/APParam.lua'))
+    def tick(ev=0):
+        R.t += 0.05
+        frames = []
+        if int(R.t * 20) % 4 == 0: frames.append((0x1E, [1, 2, 3, 4, 5, 6]))          # attitude
+        if int(R.t * 10) % 5 == 0: frames.append((0x80, [0xF0, 0x01, 0x50, 0, 0, 0, 0]))
+        frames += getattr(R, 'crsf_down', []); R.crsf_down = []
+        for cmd, d in frames: G.qpush(len(d) + 2, cmd, L.table_from(d))
+        return tool.run(ev, None)
+    G.APPARAM_TEST = L.table()
+    tool.init()
+    C = G.APPARAM_TEST.C
+    for _ in range(100): tick()
+    ready = C.blocked is None and C.link == 'CRSF'
+    tabs = [C.tabs()[i + 1] for i in range(len(C.tabs()))]
+    blocked = 0
+    if 'TECS' in tabs:
+        for _ in range(tabs.index('TECS')): tick(1)
+        tick(3)
+    for _ in range(600):
+        tick()
+        if C.blocked is not None: blocked += 1
+    rows = C.rows()
+    got, n = C.progress()
+    print('   link %s, blocked updates %d, TECS %s/%s, %s' % (C.link, blocked, got, n, C.diagText()))
+    return ready and blocked == 0 and n > 0 and got == n
+
+
 def ethos_entry():
     print('ethos entry lua54')
     R = Rig(54, 'crsf')
@@ -298,6 +372,7 @@ for ver in (52, 54):
     mono(ver, 128)
 mono(52, 212)
 edgetx_entry(52)
+check(edgetx_shared_queue(), 'EdgeTX shared queue, ELRS model, Auto: reads TECS, never blocked')
 ethos_entry()
 f = test_core.fails
 print('FAILURES: %d' % f if f else 'ALL PASS')

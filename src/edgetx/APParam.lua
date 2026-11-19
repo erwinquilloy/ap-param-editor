@@ -83,6 +83,7 @@ local IO = {
 local function init()
   local ok, e = pcall(function()
     C = load("core.lua")(IO)
+    if type(APPARAM_TEST) == "table" then APPARAM_TEST.C = C end   -- off-radio tests only
     colour = lcd.RGB ~= nil and (LCD_W or 0) >= 320
     U = load(colour and "ui_color.lua" or "ui_bw.lua")(C, TITLE)
   end)
@@ -90,15 +91,48 @@ local function init()
   collectgarbage()
 end
 
+-- EdgeTX keeps ONE byte queue for Lua telemetry: sportTelemetryPop takes 8 raw bytes whatever they
+-- are, crossfireTelemetryPop a length-prefixed frame (api_general.cpp, 2.12.5). Calling both eats
+-- the other's bytes: on ELRS the S.Port pop turned CRSF frames into fake S.Port packets and broke
+-- the CRSF stream (TX16S + ELRS, 2026-11-19: "S.Port", list, then no telemetry). So only one is
+-- called: the one the chosen telemetry source uses, or on Auto the one the model's module speaks
+-- (model.getModule Type, MODULE_TYPE_* in modules_constants.h: 5 = CROSSFIRE (ELRS, TBS, mLRS);
+-- 2 XJT, 3 ISRM, 7-10 and 12 R9M, 14 XJT Lite = FrSky S.Port; 6 = multi-protocol, S.Port).
+local SPORT_TYPES = { [2] = true, [3] = true, [6] = true, [7] = true, [8] = true, [9] = true, [10] = true,
+                      [12] = true, [14] = true }
+local modKind, modAt = nil, -10
+local function moduleKind()
+  local t = IO.clock()
+  if modKind and t - modAt < 5 then return modKind end
+  modAt = t
+  local kind = nil
+  if model and model.getModule then
+    for i = 0, 1 do
+      local ok, m = pcall(model.getModule, i)
+      local ty = ok and m and m.Type
+      if ty == 5 then kind = "crsf" break end
+      if ty and SPORT_TYPES[ty] and not kind then kind = "sport" end
+    end
+  end
+  modKind = kind or (crossfireTelemetryPop and "crsf" or "sport")
+  return modKind
+end
+local function queueKind()
+  local src = C.source
+  if src == "SPORT" then return "sport" end
+  if src == "CRSF" or src == "MAVLINK" then return "crsf" end
+  return moduleKind()
+end
+
 local function drain()
-  if sportTelemetryPop then
+  local kind = queueKind()
+  if kind == "sport" and sportTelemetryPop then
     for _ = 1, 40 do
       local physId, primId, appId, value = sportTelemetryPop()
       if physId == nil then break end
       C.sport(primId, appId, value)
     end
-  end
-  if crossfireTelemetryPop then
+  elseif kind == "crsf" and crossfireTelemetryPop then
     for _ = 1, 40 do
       local cmd, data = crossfireTelemetryPop()
       if cmd == nil then break end
