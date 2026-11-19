@@ -1,0 +1,4 @@
+dist/
+tests/out/
+tests/*.png
+__pycache__/
