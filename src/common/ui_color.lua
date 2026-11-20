@@ -211,7 +211,7 @@ return function(C, title)
         g.text(g.W - 12, ty, fit(g, srcText(), "m", g.W - 40 - g.textW("Telemetry", "m")), "m", col.warn, "r")
         box(0, y, g.W, rh, function() tabSel = i C.nextSource() end)
       elseif it == "@air" then
-        g.text(12, ty, "Air edits (PID, trim while armed)", "m", col.tx)
+        g.text(12, ty, "Air edits (save while armed)", "m", col.tx)
         g.text(g.W - 12, ty, C.airEdits and "ON" or "OFF", "m", C.airEdits and col.warn or col.dim, "r")
         box(0, y, g.W, rh, function() tabSel = i C.airEdits = not C.airEdits end)
       else

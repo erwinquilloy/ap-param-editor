@@ -33,8 +33,8 @@ USE
 
   A value is "Saved and verified" only when the flight controller reads back the same value.
   A save is sent once: on "No answer: check in a GCS", look before trying again.
-  Armed: view only. "Air edits" ON allows the PID tabs and trim rows while armed (in flight
-  the change takes effect at once - small steps).
+  Armed: view only. "Air edits" ON allows saving any parameter while armed (in flight the
+  change takes effect at once - small steps). It is OFF again every time the tool is opened.
   "n/a" = this flight controller has no such parameter (another vehicle or firmware version).
   The VTOL tabs appear when Q_ENABLE = 1.
 

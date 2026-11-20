@@ -4,16 +4,14 @@
   vehicle's: the CUSTOM tab (custom.txt beside this file).
 
   M.rows(tab) builds only that tab's rows, so the whole list is never in memory at once.
-  { name, label, unit, min, max, step, decimals, options, kind, fl = true }
+  { name, label, unit, min, max, step, decimals, options, kind }
     options  "a|b|c" = value 0, 1, 2 shown by name (nil: a number)
     kind     "bits" = ARMING_SKIPCHK check-by-check editor
-    fl       may be saved while armed when Air edits is on (as the PID tabs)
   A parameter the flight controller doesn't have shows "n/a".
 ]]
 local M = {}
 M.GROUPS = { "FLIGHT", "LAUNCH", "RETURN", "FAILSAFE", "ARMING", "TECS", "LANDING", "PID", "VTOL", "Q PID" }
 M.QG = { VTOL = true, ["Q PID"] = true }     -- shown only with Q_ENABLE 1
-M.AIR = { PID = true, ["Q PID"] = true }     -- saved while armed when Air edits is on
 function M.rows(g)
   if g == "FLIGHT" then return {
     { "ROLL_LIMIT_DEG", "Max bank", "deg", 0, 90, 1, 0 },
@@ -22,8 +20,8 @@ function M.rows(g)
     { "ARSPD_USE", "Use airspeed", "", 0, 2, 1, 0, "Don't use|Use|Use at 0 thr" },
     { "NAVL1_PERIOD", "Nav period (L1)", "s", 1, 60, 1, 0 },
     { "THR_MIN", "Min throttle", "%", -100, 100, 1, 0 },
-    { "PTCH_TRIM_DEG", "Pitch trim", "deg", -45, 45, 0.1, 1, fl = true },
-    { "KFF_THRAT2ELEV", "Thrust to elevator", "us", -500, 500, 1, 0, fl = true },
+    { "PTCH_TRIM_DEG", "Pitch trim", "deg", -45, 45, 0.1, 1 },
+    { "KFF_THRAT2ELEV", "Thrust to elevator", "us", -500, 500, 1, 0 },
     { "KFF_RDDRMIX", "Rudder mix", "", 0, 1, 0.01, 2 },
     { "YAW2SRV_DAMP", "Yaw damper", "", 0, 2, 0.05, 2 },
   } end

@@ -22,8 +22,8 @@
 
   Rules (as OmniDeck's PARAMS page): only the open tab is read, the rows on screen first; one request
   at a time; a save is sent once and is "Saved" only when the value read back is the same four bytes,
-  and never sent again by itself; view only while armed, except the PID tabs and the rows marked
-  fl = true when Air edits is on.
+  and never sent again by itself; view only while armed unless Air edits is on, which allows every
+  row. Air edits starts OFF each time the tool opens (never saved), so it ends when the tool is left.
 
   Returns a maker: io -> C. io (the platform's part):
     clock()               seconds
@@ -112,7 +112,7 @@ end
 return function(io)
   local C = { BITS = BITS, skipped = skipped, skipCount = skipCount, f2b = f2b, b2f = b2f }
   C.VERSION = "0.1.0"
-  C.fc, C.link, C.armed, C.airEdits = nil, nil, false, false
+  C.fc, C.link, C.armed, C.airEdits = nil, nil, false, false   -- Air edits OFF on every start
   -- telemetry source: AUTO picks whichever brought ArduPilot frames last (mLRS bridge, then CRSF,
   -- then S.Port); the others use that link only (two links at once, or a link Auto mistakes)
   C.SOURCES = { "AUTO", "SPORT", "CRSF", "MAVLINK" }
@@ -226,7 +226,7 @@ return function(io)
   local vals, vbs, txt = {}, {}, {}  -- name -> value (false: n/a), its 4 bytes as a string, shown text
   local qOn = nil                    -- Q_ENABLE: nil not read yet, true / false
   local LISTMOD = nil
-  local GROUPS, QG, AIR = {}, {}, {}
+  local GROUPS, QG = {}, {}
   local custom = nil                 -- CUSTOM tab rows (custom.txt), nil: none
   C.customInfo = nil                 -- "n rows" / "line 3?" for the tab list
 
@@ -513,7 +513,7 @@ return function(io)
   local function listMod()
     if not LISTMOD then
       LISTMOD = io.loadList()
-      GROUPS, QG, AIR = LISTMOD.GROUPS, LISTMOD.QG, LISTMOD.AIR
+      GROUPS, QG = LISTMOD.GROUPS, LISTMOD.QG
     end
     return LISTMOD
   end
@@ -787,9 +787,10 @@ return function(io)
     end
   end
 
+  -- armed: every row view only, unless Air edits is on (user 2026-11-20: all of them, not only the
+  -- PID tabs and trim rows; the pilot turns it on in this session, it is OFF again next time)
   function C.locked(r)
-    if not C.armed then return false end
-    return not (C.airEdits and r and (AIR[tab] or r.fl))
+    return C.armed and not C.airEdits
   end
   function C.editing() return edit, draft, base end
 
@@ -802,7 +803,7 @@ return function(io)
     if v == false then vals[r[1]], txt[r[1]] = nil, nil phase("Asking again...") return false end
     edit, draft, base = r, v, v
     phase("")
-    if C.locked(r) then phase("Armed: view only", "bad")
+    if C.locked(r) then phase("Armed: Air edits off", "bad")
     elseif C.armed then phase("In flight: saves at once", "bad") end
     if not pend and #out == 0 then readReq(r[1]) end   -- read again: may have changed in a GCS
     return true
@@ -837,7 +838,7 @@ return function(io)
   -- returns "closed" (unchanged), "saving", or nil (refused, see C.phase)
   function C.save()
     if not edit then return nil end
-    if C.locked(edit) then phase("Disarm to save", "bad") return nil end
+    if C.locked(edit) then phase("Armed: Air edits off", "bad") return nil end
     if pend and pend.set then return nil end
     local b = f2b(draft)
     local bytes = string.char(b[1], b[2], b[3], b[4])

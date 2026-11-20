@@ -218,7 +218,7 @@ def run(ver, kind):
     check(C.locked(C.editing()[0]), 'TECS locked while armed')
     C.nudge(1)
     check(C.editing()[1] == 45, 'nudge refused while locked')
-    check(C.save() is None and C.phase == 'Disarm to save', 'save refused armed')
+    check(C.save() is None and C.phase == 'Armed: Air edits off', 'save refused armed')
     C.endEdit()
     C.open('PID')
     R.until(lambda: R.val('RLL_RATE_P') is not None, 20)
@@ -226,6 +226,7 @@ def run(ver, kind):
     check(C.locked(C.editing()[0]), 'PID locked without Air edits')
     C.airEdits = True
     check(not C.locked(C.editing()[0]), 'PID open with Air edits')
+    check(not C.locked(R.L.table_from(['RTL_ALTITUDE'])), 'any row open with Air edits (not only PID / trim)')
     C.nudge(1)
     C.save()
     ok = R.until(lambda: C.phase == 'Saved and verified', 20)
