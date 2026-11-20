@@ -41,13 +41,14 @@ return function(C, title)
 
   local function box(x, y, w, h, act) boxes[#boxes + 1] = { x, y, w, h, act } end
 
-  -- the list of the tab view: tabs, then the telemetry source and the Air edits switch
+  -- the list of the tab view: tabs, then the telemetry source, the Air edits switch, the version
   local function tabItems()
     local t = C.tabs()
     local items = {}
     for i = 1, #t do items[i] = t[i] end
     items[#items + 1] = "@src"
     items[#items + 1] = "@air"
+    items[#items + 1] = "@ver"
     return items
   end
   local function srcText()
@@ -95,6 +96,7 @@ return function(C, title)
         local it = items[tabSel]
         if it == "@air" then C.airEdits = not C.airEdits
         elseif it == "@src" then C.nextSource()
+        elseif it == "@ver" then -- nothing to open
         elseif it then openTab(it) end
       elseif k == "back" then return false end
     elseif view == "rows" then
@@ -214,6 +216,10 @@ return function(C, title)
         g.text(12, ty, "Air edits (save while armed)", "m", col.tx)
         g.text(g.W - 12, ty, C.airEdits and "ON" or "OFF", "m", C.airEdits and col.warn or col.dim, "r")
         box(0, y, g.W, rh, function() tabSel = i C.airEdits = not C.airEdits end)
+      elseif it == "@ver" then
+        g.text(12, ty, "Version", "m", col.tx)
+        g.text(g.W - 12, ty, C.VERSION, "m", col.dim, "r")
+        box(0, y, g.W, rh, function() tabSel = i end)
       else
         g.text(12, ty, it, "m", col.tx)
         g.text(g.W - 12, ty, ">", "m", col.dim, "r")

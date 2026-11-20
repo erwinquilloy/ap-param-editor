@@ -110,9 +110,9 @@ def colour(ver, kind, w, h):
     paint('6_bits')
     check(R.C.editing()[1] == 4, 'bits by key')
     U.key('back'); U.key('back')
-    # telemetry source item: last but one
+    # telemetry source item: third from the end (then Air edits, Version)
     for _ in range(20): U.key('next')
-    U.key('prev'); U.key('enter')
+    U.key('prev'); U.key('prev'); U.key('enter')
     check(R.C.source == 'SPORT', 'source from tab list: %s' % R.C.source)
     if kind == 'sport': U.key('enter')   # a source this rig doesn't have
     R.step(80)
