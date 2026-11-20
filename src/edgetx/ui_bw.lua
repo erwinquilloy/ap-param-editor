@@ -157,7 +157,7 @@ return function(C, title)
     for i = 1, math.min(#l, 3) do lcd.drawText(1, 1 + i * 9, up(l[i]), SMLSIZE) end
     local D = C.diag
     lcd.drawText(1, 39, string.format("CR %d AP %d SP %d ML %d", D.cr, D.crPt, D.sp, D.env), SMLSIZE)
-    lcd.drawText(1, 48, "SRC: " .. srcText(), SMLSIZE)
+    lcd.drawText(1, 48, "SRC: " .. srcText() .. (D.env > 0 and string.format("  LOST %d BAD %d", D.lost, C.stats.bad) or ""), SMLSIZE)
     lcd.drawText(1, 57, "ENT SOURCE  RTN EXIT", SMLSIZE)
   end
 

@@ -97,5 +97,7 @@ class FakeAP:
         while self.out and (budget is None or budget > 0):
             n = min(len(self.out), self.rnd.randint(10, 58))
             if budget is not None: budget -= n
-            fr.append([0, n] + list(self.out[:n])); self.out = self.out[n:]
+            # first byte as mLRS 1.4.04 builds it: total_chunks 0 (low nibble), sequence (high nibble)
+            self.env_seq = (getattr(self, 'env_seq', -1) + 1) % 16
+            fr.append([self.env_seq * 16, n] + list(self.out[:n])); self.out = self.out[n:]
         return fr

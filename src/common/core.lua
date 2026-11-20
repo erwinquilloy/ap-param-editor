@@ -134,7 +134,7 @@ return function(io)
   local seenCrNat = -100
   local NATIVE = { [0x02] = true, [0x07] = true, [0x08] = true, [0x09] = true, [0x1E] = true, [0x21] = true }
   -- what came in: shown on the "No ... telemetry" screen (frames since the tool opened)
-  C.diag = { cr = 0, crPt = 0, crNat = 0, sp = 0, spPt = 0, env = 0 }
+  C.diag = { cr = 0, crPt = 0, crNat = 0, sp = 0, spPt = 0, env = 0, lost = 0 }
   local function crAlive(now) return now - seenCr < 3 or (now - seenCrNat < 3 and now - seenCr < 30) end
   local function heard(t) lastRx = t C.fc = "ArduPilot" end
   function C.alive() return clock() - lastRx < 3 end
@@ -376,6 +376,8 @@ return function(io)
 
   -- ---------------------------------------------------------------- receive: CRSF
   local envQ = {}
+  local feed            -- the MAVLink reader, defined below
+  local envSeq          -- last mLRS bridge frame sequence (0-15), for the lost count
   local function value5001(appLo, appHi, v1) if appLo == 0x01 and appHi == 0x50 then C.armed = v1 % 2 == 1 end end
   function C.crsf(cmd, d)
     if not d then return end
@@ -392,7 +394,17 @@ return function(io)
       D.env = D.env + 1
       seenEnv = now
       if MV.found then heard(now) end
-      if #envQ >= 16 then table.remove(envQ, 1) end
+      -- mLRS numbers its bridge frames (high nibble of the first byte, 0-15): a gap is frames
+      -- EdgeTX dropped before Lua saw them (its telemetry queue for scripts is 256 bytes)
+      local seq = math.floor((d[1] or 0) / 16) % 16
+      if envSeq then D.lost = D.lost + (seq - envSeq - 1) % 16 end
+      envSeq = seq
+      -- queue full: read the oldest now rather than drop it - a lost frame cuts every MAVLink
+      -- message running across it (TX12 MK2 + mLRS 2026-11-20: bridge on, never a HEARTBEAT)
+      if #envQ >= 16 then
+        local old = table.remove(envQ, 1)
+        if link == "MAVLINK" then feed(old) end
+      end
       envQ[#envQ + 1] = d
       return
     end
@@ -450,7 +462,7 @@ return function(io)
   end
   -- packets run across frames: header (10 bytes), then the body read or skipped
   local st, hn, hdr, skip, need, got, body, mid = 0, 0, {}, 0, 0, 0, {}, 0
-  local function feed(data)
+  feed = function(data)
     local e = 2 + (data[2] or 0)
     if e > #data then e = #data end
     local i = 3
@@ -667,7 +679,7 @@ return function(io)
       answered, silent, quietAt = false, 0, nil
     end
     if link == "MAVLINK" then
-      for _ = 1, 4 do
+      for _ = 1, 8 do
         if io.busy and io.busy() then break end
         local d = table.remove(envQ, 1)
         if not d then break end
