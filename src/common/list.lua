@@ -51,6 +51,7 @@ function M.rows(g)
     { "ARMING_SKIPCHK", "Skip checks", "", -1, 1048575, 1, 0, nil, "bits" },
     { "ARMING_RUDDER", "Rudder arming", "", 0, 2, 1, 0, "Disabled|Arming only|Arm or disarm" },
     { "ARMING_REQUIRE", "Require arming", "", 0, 2, 1, 0, "Disabled|Yes (min PWM)|Yes (0 PWM)" },
+    { "ARMING_MODE_SW", "Mode after arming", "", 0, 2, 1, 0, "Disabled|Takeoff|Auto" },   -- Stratos only
   } end
   if g == "TECS" then return {
     { "TRIM_THROTTLE", "Cruise throttle", "%", 0, 100, 1, 0 },
