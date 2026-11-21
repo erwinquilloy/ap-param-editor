@@ -22,6 +22,7 @@ function M.rows(g)
     { "THR_MIN", "Min throttle", "%", -100, 100, 1, 0 },
     { "PTCH_TRIM_DEG", "Pitch trim", "deg", -45, 45, 0.1, 1 },
     { "KFF_THRAT2ELEV", "Thrust to elevator", "us", -500, 500, 1, 0 },
+    { "KFF_FLAP2ELEV", "Flap to elevator", "us", -500, 500, 1, 0 },
     { "KFF_RDDRMIX", "Rudder mix", "", 0, 1, 0.01, 2 },
     { "YAW2SRV_DAMP", "Yaw damper", "", 0, 2, 0.05, 2 },
   } end
