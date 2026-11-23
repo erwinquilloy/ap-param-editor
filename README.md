@@ -8,6 +8,13 @@ Read and change ArduPilot parameters from an EdgeTX or Ethos radio, without a la
 - **Tabs:** ArduPlane FLIGHT, LAUNCH, RETURN, FAILSAFE, ARMING (check-by-check skip editor), TECS, LANDING, PID, VTOL / Q PID (with Q_ENABLE 1), plus a CUSTOM tab from `custom.txt` for any parameter on any vehicle.
 - **Safety:** one request at a time, saves verified by read-back and never repeated automatically, view-only while armed unless Air edits is on (any parameter; OFF again each time the tool opens).
 
+## Download
+
+From the [releases page](https://github.com/erwinquilloy/ap-param-editor/releases): `AP_Param_Editor_EdgeTX_v0.1.0.zip` for EdgeTX (colour and black-and-white) or `AP_Param_Editor_Ethos_v0.1.0.zip` for FrSky Ethos. Install steps are in [INSTALL.txt](INSTALL.txt), also inside each zip.
+
+- **ELRS / TBS (CRSF) needs ArduPlane Stratos v2.2.1 or later:** [v2.2.1 full](https://github.com/erwinquilloy/ardupilot/releases/tag/full-v2.2.1) for 2 MB flight controllers (F7, H7), [v2.2.1 light](https://github.com/erwinquilloy/ardupilot/releases/tag/light-v2.2.1) for 1 MB F4 boards.
+- **Upstream ArduPilot:** S.Port / F.Port and mLRS work as they are. Parameters over CRSF wait on [ArduPilot#35160](https://github.com/ArduPilot/ardupilot/pull/35160), still open.
+
 ## Tested on radios
 
 | Radio | Confirmed |
