@@ -11,10 +11,14 @@
     ELRS / Crossfire   ArduPlane Stratos v2.2.1+ (or ArduPilot with PR #35160): MAVlite in one CRSF
                        frame: radio -> FC 0x80 C8 EA F4 len msgid payload, FC -> radio 0x80 F4 len
                        msgid payload
-    mLRS               Tx Ser Port = cbridge, any ArduPilot: MAVLink v2 in CRSF frames 0xAA (chunk
-                       byte, size, up to 58 bytes) both ways. The mLRS module sends nothing over the
-                       bridge until the radio has, so a GCS HEARTBEAT goes out every 2 s on CRSF
-                       (ELRS and Crossfire ignore the frame type).
+    mLRS               Tx Ser Port = cbridge, any ArduPilot: MAVLink v2 in mLRS "mb" envelope
+                       frames, radio -> module 0x81, module -> radio 0x82 (0x66, seq, size, up to 57
+                       bytes). mLRS answers in the envelope type it last got; 0xAA (CRSF MAVLink
+                       envelope: chunk, size, up to 58) is still read but never sent: mLRS 1.5.00
+                       builds its 0xAA frames wrong (size from a byte it no longer writes, the data
+                       one byte off), 0x81 / 0x82 work on 1.4.04 and 1.5.00 alike. A GCS HEARTBEAT
+                       goes out every 2 s on CRSF, so the bridge has heard the radio (ELRS and
+                       Crossfire ignore the frame type).
 
   PARAM_REQUEST_READ 20 / PARAM_SET 23 -> PARAM_VALUE 22 (float32 value, name). Over MAVlite a name
   the FC doesn't have gets only the text "Param read failed (NAME)"; over MAVLink nothing (n/a after
@@ -93,7 +97,7 @@ local CRCX = { [0] = 50, [20] = 214, [22] = 220, [23] = 168 }   -- CRC_EXTRA of 
 
 -- GCS HEARTBEAT (255/25, type GCS, autopilot invalid) as one bridge frame, worked out beforehand
 -- (tests check it): it wakes the mLRS bridge
-local HB = { 0, 21, 253, 9, 0, 0, 0, 255, 25, 0, 0, 0, 0, 0, 0, 0, 6, 8, 0, 0, 3, 186, 120 }
+local HB = { 0x66, 0, 21, 253, 9, 0, 0, 0, 255, 25, 0, 0, 0, 0, 0, 0, 0, 6, 8, 0, 0, 3, 186, 120 }   -- mb envelope 0x81
 
 -- ARMING_SKIPCHK (Plane bits, AP_Arming.cpp): a set bit = that check is skipped
 local BITS = { { 1, "Barometer" }, { 2, "Compass" }, { 3, "GPS lock" }, { 4, "INS" }, { 5, "Parameters" },
@@ -111,7 +115,7 @@ end
 
 return function(io)
   local C = { BITS = BITS, skipped = skipped, skipCount = skipCount, f2b = f2b, b2f = b2f }
-  C.VERSION = "0.1.0"
+  C.VERSION = "0.1.1"
   C.fc, C.link, C.armed, C.airEdits = nil, nil, false, false   -- Air edits OFF on every start
   -- telemetry source: AUTO picks whichever brought ArduPilot frames last (mLRS bridge, then CRSF,
   -- then S.Port); the others use that link only (two links at once, or a link Auto mistakes)
@@ -162,10 +166,10 @@ return function(io)
     p[#p + 1] = floor(crc / 256)
     local i = 1
     while i <= #p do
-      local n = math.min(58, #p - i + 1)
-      local e = { 0, n }
-      for k = 0, n - 1 do e[k + 3] = p[i + k] end
-      out[#out + 1] = { cmd = 0xAA, data = e }
+      local n = math.min(57, #p - i + 1)
+      local e = { 0x66, 0, n }   -- mLRS mb envelope (0x66, seq, size, data)
+      for k = 0, n - 1 do e[k + 4] = p[i + k] end
+      out[#out + 1] = { cmd = 0x81, data = e }
       i = i + n
     end
   end
@@ -390,13 +394,23 @@ return function(io)
       if now - seenCr < 30 then heard(now) end
       return
     end
-    if cmd == 0xAA then
+    local mb = cmd == 0x82 and d[1] == 0x66   -- (0x82 without 0x66: mLRS's own Lua replies)
+    if mb or cmd == 0xAA then
       D.env = D.env + 1
       seenEnv = now
       if MV.found then heard(now) end
-      -- mLRS numbers its bridge frames (high nibble of the first byte, 0-15): a gap is frames
-      -- EdgeTX dropped before Lua saw them (its telemetry queue for scripts is 256 bytes)
-      local seq = math.floor((d[1] or 0) / 16) % 16
+      -- mLRS numbers its bridge frames (0-15; mb: low nibble of the seq byte, 0xAA: high nibble of
+      -- the first byte): a gap is frames EdgeTX dropped before Lua saw them (its telemetry queue
+      -- for scripts is 256 bytes)
+      local seq
+      if mb then
+        seq = (d[2] or 0) % 16
+        local t = {}   -- as 0xAA from here on: (seq byte, size, data...)
+        for i = 2, #d do t[i - 1] = d[i] end
+        d = t
+      else
+        seq = math.floor((d[1] or 0) / 16) % 16
+      end
       if envSeq then D.lost = D.lost + (seq - envSeq - 1) % 16 end
       envSeq = seq
       -- queue full: read the oldest now rather than drop it - a lost frame cuts every MAVLink
@@ -697,7 +711,7 @@ return function(io)
     -- before the radio has (ELRS / Crossfire ignore the frame; no CRSF module: the push fails)
     if link ~= "SPORT" and io.crsfOk ~= false and now - hbAt >= 2 then
       hbAt = now
-      pcall(io.push, { cmd = 0xAA, data = HB })
+      pcall(io.push, { cmd = 0x81, data = HB })
     end
     if b then return end
     if #out > 0 then

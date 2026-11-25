@@ -29,9 +29,17 @@ class FakeAP:
         self.out += m.pack(self.mv)
 
     def from_radio(self, cmd, data):
-        assert cmd == 0xAA and data[0] == 0 and data[1] == len(data) - 2 and data[1] <= 58, (cmd, data[:3], len(data))
+        # mLRS: mb envelope 0x81 (0x66, seq, size; it checks len == size + 5) or 0xAA; it answers in
+        # the type it last got, mb before the radio has sent anything
+        if cmd == 0x81:
+            assert data[0] == 0x66 and data[2] == len(data) - 3 and data[2] <= 57, (cmd, data[:4], len(data))
+            self.use_mb, body = True, data[3:]
+        else:
+            assert cmd == 0xAA and data[1] == len(data) - 2 and data[1] <= 58, (cmd, data[:3], len(data))
+            self.use_mb, body = False, data[2:]
+        self.types_in = getattr(self, 'types_in', set()) | {cmd}
         self.frames_in += 1
-        for m in self.rxp.parse_buffer(bytes(data[2:])) or []:
+        for m in self.rxp.parse_buffer(bytes(body)) or []:
             self.handle(m)
 
     def handle(self, m):
@@ -95,9 +103,13 @@ class FakeAP:
             return fr
         budget = getattr(self, 'bytes_per_tick', None)   # the link's capacity: the rest waits (queue)
         while self.out and (budget is None or budget > 0):
-            n = min(len(self.out), self.rnd.randint(10, 58))
+            mb = getattr(self, 'use_mb', True)
+            n = min(len(self.out), self.rnd.randint(10, 57 if mb else 58))
             if budget is not None: budget -= n
-            # first byte as mLRS 1.4.04 builds it: total_chunks 0 (low nibble), sequence (high nibble)
             self.env_seq = (getattr(self, 'env_seq', -1) + 1) % 16
-            fr.append([self.env_seq * 16, n] + list(self.out[:n])); self.out = self.out[n:]
-        return fr
+            if mb:   # mLRS mb envelope 0x82: 0x66, seq (low nibble), size, data
+                fr.append((0x82, [0x66, self.env_seq, n] + list(self.out[:n])))
+            else:    # 0xAA as 1.4.04 builds it: total_chunks 0 (low nibble), sequence (high nibble)
+                fr.append((0xAA, [self.env_seq * 16, n] + list(self.out[:n])))
+            self.out = self.out[n:]
+        return fr   # (type, payload) pairs

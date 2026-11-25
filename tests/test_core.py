@@ -66,7 +66,8 @@ class Rig:
                 return True
             cmd = int(f['cmd'])
             data = [int(f['data'][i + 1]) for i in range(len(f['data']))]
-            if cmd == 0xAA:
+            if cmd in (0x81, 0xAA):
+                check(cmd == 0x81, 'bridge frames go as mLRS mb envelopes 0x81 (got 0x%02X)' % cmd)
                 rig.hb = getattr(rig, 'hb', 0) + 1
                 if rig.kind == 'mlrs':
                     rig.ap.from_radio(cmd, data)
@@ -134,8 +135,8 @@ class Rig:
                 C.crsf(0x80, lua_table(L, [0xF0, 0x01, 0x50, 0, 1 if self.ap.armed else 0, 0, 0]))
                 C.crsf(0x08, lua_table(L, [0, 160, 0, 10, 0, 0, 0, 80]))
             self.ap.tick(self.t)
-            for fr in self.ap.frames():
-                C.crsf(0xAA, lua_table(L, fr))
+            for c, fr in self.ap.frames():
+                C.crsf(c, lua_table(L, fr))
 
     def step(self, n=1):
         for _ in range(n):
@@ -283,7 +284,7 @@ def heartbeat_bytes():
     io = L.eval('{ clock = function() return 0 end, push = function() end, loadList = function() end }')
     C = L.eval('dofile')(os.path.join(SRC, 'core.lua').replace('\\', '/'))(io)
     hb = [C._HB[i + 1] for i in range(len(C._HB))]
-    check(hb == [0, len(pkt)] + list(pkt), 'HB frame == pymavlink heartbeat %s / %s' % (hb, list(pkt)))
+    check(hb == [0x66, 0, len(pkt)] + list(pkt), 'HB frame == mb envelope of the pymavlink heartbeat %s / %s' % (hb, list(pkt)))
 
 
 def forced_source(ver):

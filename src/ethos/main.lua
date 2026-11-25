@@ -9,7 +9,7 @@
   Ethos hands every reader its own copy of the frames (no shared queue as on EdgeTX), and a pop
   with a type range DROPS the frames outside it for that reader (X20S + mLRS 2026-11-14). So the
   one CRSF reader here pops with no range: passthrough / MAVlite (0x7F-0x80), the FC's native
-  frames (they keep a slow ELRS link counted as alive) and the mLRS bridge (0xAA) all come through.
+  frames (they keep a slow ELRS link counted as alive) and the mLRS bridge (0x82, or 0xAA) all come through.
 ]]
 local DIR = "/scripts/apparam/"
 local NAME = "AP Param Editor"
