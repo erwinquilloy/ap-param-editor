@@ -1,6 +1,6 @@
-# Param Editor
+# OmniDeck Param Editor
 
-Read and change flight controller settings from an EdgeTX or Ethos radio, without a laptop: **ArduPilot, INAV 9.1+ and Betaflight 4.5 / 2025.12 / 2026.6**. (Called "AP Param Editor" up to 0.1.1, when it was ArduPilot only.)
+Read and change flight controller settings from an EdgeTX or Ethos radio, without a laptop: **ArduPilot, INAV 9.1+ and Betaflight 4.5 / 2025.12 / 2026.6**. (Called "Param Editor" in 0.2.0 and "AP Param Editor" up to 0.1.1, when it was ArduPilot only. A companion to [OmniDeck](https://github.com/erwinquilloy/OmniDeck).)
 
 - **Radios:** EdgeTX colour (any screen size, touch) and black-and-white (128x64, 212x64); FrSky Ethos (System > Tools).
 - **Flight controller:** found by itself. ArduPilot from its own telemetry; otherwise the tool asks over MSP whether it is INAV or Betaflight. The tab list shows which.
@@ -19,7 +19,7 @@ The INAV and Betaflight support is the same as [OmniDeck](https://github.com/erw
 
 ## Download
 
-From the [releases page](https://github.com/erwinquilloy/param-editor/releases): `Param_Editor_EdgeTX_v0.2.0.zip` for EdgeTX (colour and black-and-white) or `Param_Editor_Ethos_v0.2.0.zip` for FrSky Ethos. Install steps are in [INSTALL.txt](INSTALL.txt), also inside each zip. Updating from AP Param Editor 0.1.x: delete the old `APPARAM` / `apparam` folder (and `APParam.lua` on EdgeTX); the new one is `PARAMED` / `parameditor`.
+From the [releases page](https://github.com/erwinquilloy/param-editor/releases): `OmniDeck_Param_Editor_EdgeTX_v0.2.1.zip` for EdgeTX (colour and black-and-white) or `OmniDeck_Param_Editor_Ethos_v0.2.1.zip` for FrSky Ethos. Install steps are in [INSTALL.txt](INSTALL.txt), also inside each zip. Updating from AP Param Editor 0.1.x: delete the old `APPARAM` / `apparam` folder (and `APParam.lua` on EdgeTX); the new one is `PARAMED` / `parameditor`.
 
 - **ArduPilot over ELRS / TBS (CRSF) needs ArduPlane Stratos v2.2.1 or later:** [releases](https://github.com/erwinquilloy/ardupilot/releases). Upstream ArduPilot: S.Port / F.Port and mLRS work as they are; parameters over CRSF wait on [ArduPilot#35160](https://github.com/ArduPilot/ardupilot/pull/35160).
 - **INAV 9.0.x** answers the setting requests without the values over the radio link (fixed in 9.1): update to 9.1 or later.

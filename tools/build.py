@@ -16,7 +16,7 @@ LAYOUT = {
 }
 shutil.rmtree(DIST, ignore_errors=True)
 for tgt, files in LAYOUT.items():
-    zp = os.path.join(DIST, 'Param_Editor_%s_v%s.zip' % (tgt, ver))
+    zp = os.path.join(DIST, 'OmniDeck_Param_Editor_%s_v%s.zip' % (tgt, ver))
     os.makedirs(DIST, exist_ok=True)
     with zipfile.ZipFile(zp, 'w', zipfile.ZIP_DEFLATED) as z:
         for dst, src in files.items():

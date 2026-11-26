@@ -1,5 +1,5 @@
 --[[
-  Param Editor for FrSky Ethos (System > Tools): read and change flight controller settings.
+  OmniDeck Param Editor for FrSky Ethos (System > Tools): read and change flight controller settings.
     ArduPilot   S.Port / F.Port passthrough (SERIALn_PROTOCOL 10); ELRS / Crossfire with ArduPlane
                 Stratos v2.2.1+ (MAVlite over CRSF); mLRS Tx Ser Port = cbridge (MAVLink)
     INAV 9.1+, Betaflight 4.5 - 2026.6  MSP over ELRS / Crossfire, S.Port / F.Port or mLRS
@@ -13,8 +13,8 @@
   frames (they keep a slow ELRS link counted as alive) and the mLRS bridge (0x82, or 0xAA) all come through.
 ]]
 local DIR = "/scripts/parameditor/"
-local NAME = "Param Editor"
-local VERSION = "0.2.0"
+local NAME = "OmniDeck Param Editor"
+local VERSION = "0.2.1"
 
 local function mod(name) return assert(loadfile(name))() end
 

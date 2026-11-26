@@ -1,6 +1,6 @@
-Param Editor - read and change flight controller settings from your radio
+OmniDeck Param Editor - read and change flight controller settings from your radio
 ==========================================================================
-ArduPilot, INAV 9.1 or later, and Betaflight 4.5 / 2025.12 / 2026.6. (Was "AP Param Editor" up to 0.1.1.)
+ArduPilot, INAV 9.1 or later, and Betaflight 4.5 / 2025.12 / 2026.6. (Was "Param Editor" in 0.2.0 and "AP Param Editor" up to 0.1.1.)
 
 INSTALL
   EdgeTX (colour or black-and-white radios, EdgeTX 2.9 or later)
@@ -8,12 +8,12 @@ INSTALL
       /SCRIPTS/TOOLS/ParamEd.lua
       /SCRIPTS/PARAMED/   (pick.lua, core.lua, mspcore.lua, list.lua, ilist.lua, bflist.lua,
                            ui_color.lua, ui_bw.lua, custom.txt, custom_inav.txt)
-    Run it: SYS > Tools > Param Editor
+    Run it: SYS > Tools > OmniDeck Param Editor
 
   FrSky Ethos (X20, X20S, X18, X10, X12 ...)
     Copy the scripts folder from the zip to the SD card root:
       /scripts/parameditor/   (main.lua, icon.png and the same files as above, without ui_bw.lua)
-    Restart the radio. Run it: System > Tools > Param Editor (the slider icon)
+    Restart the radio. Run it: System > Tools > OmniDeck Param Editor (the slider icon)
 
   Updating from AP Param Editor 0.1.x: delete the old /SCRIPTS/TOOLS/APParam.lua and
   /SCRIPTS/APPARAM/ (EdgeTX) or /scripts/apparam/ (Ethos). Copy custom.txt over first if you

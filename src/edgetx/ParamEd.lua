@@ -1,6 +1,6 @@
-local toolName = "TNS|Param Editor|TNE"
+local toolName = "TNS|OmniDeck Param Editor|TNE"
 --[[
-  Param Editor for EdgeTX (SYS > Tools): read and change flight controller settings from the radio.
+  OmniDeck Param Editor for EdgeTX (SYS > Tools): read and change flight controller settings from the radio.
     ArduPilot   S.Port / F.Port passthrough (SERIALn_PROTOCOL 10); ELRS / Crossfire with ArduPlane
                 Stratos v2.2.1+ (MAVlite over CRSF); mLRS Tx Ser Port = cbridge (MAVLink)
     INAV 9.1+, Betaflight 4.5 - 2026.6  MSP over ELRS / Crossfire, S.Port / F.Port or mLRS
@@ -39,8 +39,10 @@ if rawget(_G, "table") == nil then
 end
 
 local ROOT = "/SCRIPTS/PARAMED/"
-local TITLE = "Param Editor"
-local VERSION = "0.2.0"
+-- the title bar: the full name where it fits; a 128-pixel screen (TX12) has room for 12 letters
+-- beside the memory figure, so it keeps the short one
+local TITLE = (LCD_W or 480) > 160 and "OmniDeck Param Editor" or "Param Editor"
+local VERSION = "0.2.1"
 local C, U, err = nil, nil, nil
 local colour = false
 local base = getTime()
