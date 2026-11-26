@@ -347,7 +347,7 @@ def ethos_entry():
     G.PARAMED_TEST = L.table()
     L.eval('dofile')(root + '/main.lua').init()
     T = G.TOOL
-    check(T is not None and T.name == 'Param Editor' and T.icon == 'icon.png', 'registered with icon')
+    check(T is not None and T.name == 'OmniDeck Param Editor' and T.icon == 'icon.png', 'registered with icon')
     w = T.create()
     for _ in range(300):
         R.t += 0.05

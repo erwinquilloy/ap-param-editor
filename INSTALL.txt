@@ -8,7 +8,7 @@ INSTALL
       /SCRIPTS/TOOLS/ParamEd.lua
       /SCRIPTS/PARAMED/   (pick.lua, core.lua, mspcore.lua, list.lua, ilist.lua, bflist.lua,
                            ui_color.lua, ui_bw.lua, custom.txt, custom_inav.txt)
-    Run it: SYS > Tools > OmniDeck Param Editor
+    Run it: SYS > Tools > OmniDeck Params
 
   FrSky Ethos (X20, X20S, X18, X10, X12 ...)
     Copy the scripts folder from the zip to the SD card root:

@@ -2,7 +2,7 @@
 
 Read and change flight controller settings from an EdgeTX or Ethos radio, without a laptop: **ArduPilot, INAV 9.1+ and Betaflight 4.5 / 2025.12 / 2026.6**. (Called "Param Editor" in 0.2.0 and "AP Param Editor" up to 0.1.1, when it was ArduPilot only. A companion to [OmniDeck](https://github.com/erwinquilloy/OmniDeck).)
 
-- **Radios:** EdgeTX colour (any screen size, touch) and black-and-white (128x64, 212x64); FrSky Ethos. It is listed as **OmniDeck Param Editor** in SYS > Tools (EdgeTX) and System > Tools (Ethos); on a 128x64 screen the title bar keeps the short "PARAM EDITOR".
+- **Radios:** EdgeTX colour (any screen size, touch) and black-and-white (128x64, 212x64); FrSky Ethos. It is listed as **OmniDeck Params** in SYS > Tools on EdgeTX (EdgeTX allows 16 characters there on black-and-white radios) and **OmniDeck Param Editor** in System > Tools on Ethos.
 - **Flight controller:** found by itself. ArduPilot from its own telemetry; otherwise the tool asks over MSP whether it is INAV or Betaflight. The tab list shows which.
 - **Links:**
   - ArduPilot: S.Port / F.Port passthrough (MAVlite), ELRS / TBS (ArduPlane Stratos v2.2.1+, MAVlite over CRSF), mLRS cbridge (MAVLink).

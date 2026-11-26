@@ -1,4 +1,6 @@
-local toolName = "TNS|OmniDeck Param Editor|TNE"
+-- EdgeTX takes a tool name of at most 16 characters on black-and-white radios (RADIO_TOOL_NAME_MAXLEN,
+-- lua_api.h; 40 on colour) and shows the file name for a longer one, so the tool list says "OmniDeck Params"
+local toolName = "TNS|OmniDeck Params|TNE"
 --[[
   OmniDeck Param Editor for EdgeTX (SYS > Tools): read and change flight controller settings from the radio.
     ArduPilot   S.Port / F.Port passthrough (SERIALn_PROTOCOL 10); ELRS / Crossfire with ArduPlane
@@ -39,9 +41,9 @@ if rawget(_G, "table") == nil then
 end
 
 local ROOT = "/SCRIPTS/PARAMED/"
--- the title bar: the full name where it fits; a 128-pixel screen (TX12) has room for 12 letters
--- beside the memory figure, so it keeps the short one
-local TITLE = (LCD_W or 480) > 160 and "OmniDeck Param Editor" or "Param Editor"
+-- the title bar: the full name where it fits; a 128-pixel screen (TX12) has room for about 16 letters
+-- beside the memory figure, so it shows the tool list's name
+local TITLE = (LCD_W or 480) > 160 and "OmniDeck Param Editor" or "OmniDeck Params"
 local VERSION = "0.2.1"
 local C, U, err = nil, nil, nil
 local colour = false
