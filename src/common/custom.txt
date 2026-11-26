@@ -1,4 +1,4 @@
-# AP Param Editor: your own CUSTOM tab (delete this file to hide it).
+# Param Editor: your own ArduPilot CUSTOM tab (delete this file to hide it).
 # One parameter per line:   NAME, label, min, max, step
 # Only NAME is needed. Without min/max there is no limit; without a step it comes from the value
 # (12 -> 1, 0.08 -> 0.01). Up to 40 lines. Works for any ArduPilot vehicle (Copter, Rover...).

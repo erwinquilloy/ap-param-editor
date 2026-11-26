@@ -1,0 +1,8 @@
+# Param Editor: your own CUSTOM tab for INAV (delete this file to hide it).
+# One INAV setting per line, by its CLI name:   name, label, min, max, step
+# Only the name is needed. INAV gives its own limits and option names when the value is read.
+# Up to 40 lines. (ArduPilot: custom.txt. Betaflight has no settings by name over MSP.)
+#
+# Examples (remove the # to use them):
+# nav_fw_launch_timeout, Launch timeout
+# fw_iterm_limit_stick_position, I-term stick limit

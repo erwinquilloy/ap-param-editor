@@ -1,25 +1,33 @@
 --[[
-  AP Param Editor for FrSky Ethos (System > Tools): read and change ArduPilot parameters.
-    S.Port / F.Port   any ArduPilot with FrSky passthrough (SERIALn_PROTOCOL 10)
-    ELRS / Crossfire  ArduPlane Stratos v2.2.1+ (MAVlite over CRSF)
-    mLRS              Tx Ser Port = cbridge, any ArduPilot (MAVLink)
-  Files in /scripts/apparam/: core.lua (links, requests), list.lua (tabs), ui_color.lua (screen),
-  custom.txt (CUSTOM tab), settings.txt (telemetry source).
+  Param Editor for FrSky Ethos (System > Tools): read and change flight controller settings.
+    ArduPilot   S.Port / F.Port passthrough (SERIALn_PROTOCOL 10); ELRS / Crossfire with ArduPlane
+                Stratos v2.2.1+ (MAVlite over CRSF); mLRS Tx Ser Port = cbridge (MAVLink)
+    INAV 9.1+, Betaflight 4.5 / 2025.12   MSP over ELRS / Crossfire, S.Port / F.Port or mLRS
+  Files in /scripts/parameditor/: pick.lua (which engine), core.lua (ArduPilot), mspcore.lua (INAV,
+  Betaflight), list.lua / ilist.lua / bflist.lua (tabs), ui_color.lua (screen), custom.txt and
+  custom_inav.txt (CUSTOM tabs), settings.txt (telemetry source).
 
   Ethos hands every reader its own copy of the frames (no shared queue as on EdgeTX), and a pop
   with a type range DROPS the frames outside it for that reader (X20S + mLRS 2026-11-14). So the
   one CRSF reader here pops with no range: passthrough / MAVlite (0x7F-0x80), the FC's native
   frames (they keep a slow ELRS link counted as alive) and the mLRS bridge (0x82, or 0xAA) all come through.
 ]]
-local DIR = "/scripts/apparam/"
-local NAME = "AP Param Editor"
+local DIR = "/scripts/parameditor/"
+local NAME = "Param Editor"
+local VERSION = "0.2.0"
 
 local function mod(name) return assert(loadfile(name))() end
 
 local IO = {
   clock = os.clock,
+  version = VERSION,
+  loadCore = function() return mod("core.lua") end,
+  loadMsp = function() return mod("mspcore.lua") end,
   loadList = function() return mod("list.lua") end,
+  loadInav = function() return mod("ilist.lua") end,
+  loadBf = function() return mod("bflist.lua") end,
   customPath = DIR .. "custom.txt",
+  inavCustomPath = DIR .. "custom_inav.txt",
   settingsPath = DIR .. "settings.txt",
   -- line by line, as OmniDeck reads its files on Ethos
   readFile = function(path)
@@ -128,8 +136,8 @@ end
 -- ---------------------------------------------------------------- tool
 local lastPaint = 0
 local function create()
-  C = mod("core.lua")(IO)
-  if type(APPARAM_TEST) == "table" then APPARAM_TEST.C = C end   -- off-radio tests only
+  C = mod("pick.lua")(IO)
+  if type(PARAMED_TEST) == "table" then PARAMED_TEST.C = C end   -- off-radio tests only
   U = mod("ui_color.lua")(C, NAME)
   G = nil
   return {}

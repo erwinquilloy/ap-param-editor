@@ -1,5 +1,5 @@
 --[[
-  AP Param Editor, black-and-white EdgeTX screens (128x64, 212x64). Same keys as the colour UI:
+  Param Editor, black-and-white EdgeTX screens (128x64, 212x64). Same keys as the colour UI:
   U.key(k) with k = "next", "prev", "enter", "back" (false: leave the tool), U.paint().
   Wheel or +/- moves (in the editor: changes the value), ENTER opens / saves, RTN goes back.
 ]]
@@ -17,6 +17,7 @@ return function(C, title)
     local t = C.tabs()
     local l = {}
     for i = 1, #t do l[i] = t[i] end
+    l[#l + 1] = "@fc"
     l[#l + 1] = "@src"
     l[#l + 1] = "@air"
     l[#l + 1] = "@ver"   -- the editor's own version, shown only
@@ -43,7 +44,7 @@ return function(C, title)
         local it = l[tabSel]
         if it == "@src" then C.nextSource()
         elseif it == "@air" then C.airEdits = not C.airEdits
-        elseif it == "@ver" then -- nothing to open
+        elseif it == "@ver" or it == "@fc" then -- nothing to open
         elseif it then C.open(it) view, sel, top = "rows", 1, 1 C.select(1) end
       elseif k == "back" then return false end
     elseif view == "rows" then
@@ -99,7 +100,8 @@ return function(C, title)
       local left = it
       if it == "@src" then left, right = "TELEMETRY", srcText()
       elseif it == "@air" then left, right = "AIR EDITS", C.airEdits and "ON" or "OFF"
-      elseif it == "@ver" then left, right = "VERSION", C.VERSION end
+      elseif it == "@ver" then left, right = "VERSION", C.VERSION
+      elseif it == "@fc" then left, right = "FC", up(C.fcText()) end
       line(10 + k * 7, left, right, i == tabSel)
     end
     if C.customInfo then lcd.drawText(1, 57, up(C.customInfo), SMLSIZE) end

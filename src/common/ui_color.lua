@@ -1,5 +1,5 @@
 --[[
-  AP Param Editor, colour screen UI (EdgeTX colour radios and Ethos share this file byte for byte).
+  Param Editor, colour screen UI (EdgeTX colour radios and Ethos share this file byte for byte).
   Any screen size: everything is laid out from the window's width and height.
 
   The platform gives a drawing adapter g:
@@ -46,6 +46,7 @@ return function(C, title)
     local t = C.tabs()
     local items = {}
     for i = 1, #t do items[i] = t[i] end
+    items[#items + 1] = "@fc"
     items[#items + 1] = "@src"
     items[#items + 1] = "@air"
     items[#items + 1] = "@ver"
@@ -96,7 +97,7 @@ return function(C, title)
         local it = items[tabSel]
         if it == "@air" then C.airEdits = not C.airEdits
         elseif it == "@src" then C.nextSource()
-        elseif it == "@ver" then -- nothing to open
+        elseif it == "@ver" or it == "@fc" then -- nothing to open
         elseif it then openTab(it) end
       elseif k == "back" then return false end
     elseif view == "rows" then
@@ -216,6 +217,10 @@ return function(C, title)
         g.text(12, ty, "Air edits (save while armed)", "m", col.tx)
         g.text(g.W - 12, ty, C.airEdits and "ON" or "OFF", "m", C.airEdits and col.warn or col.dim, "r")
         box(0, y, g.W, rh, function() tabSel = i C.airEdits = not C.airEdits end)
+      elseif it == "@fc" then
+        g.text(12, ty, "Flight controller", "m", col.tx)
+        g.text(g.W - 12, ty, fit(g, C.fcText(), "m", g.W - 40 - g.textW("Flight controller", "m")), "m", col.dim, "r")
+        box(0, y, g.W, rh, function() tabSel = i end)
       elseif it == "@ver" then
         g.text(12, ty, "Version", "m", col.tx)
         g.text(g.W - 12, ty, C.VERSION, "m", col.dim, "r")

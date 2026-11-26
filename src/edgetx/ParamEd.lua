@@ -1,10 +1,11 @@
-local toolName = "TNS|AP Param Editor|TNE"
+local toolName = "TNS|Param Editor|TNE"
 --[[
-  AP Param Editor for EdgeTX (SYS > Tools): read and change ArduPilot parameters from the radio.
-    S.Port / F.Port   any ArduPilot with FrSky passthrough (SERIALn_PROTOCOL 10)
-    ELRS / Crossfire  ArduPlane Stratos v2.2.1+ (MAVlite over CRSF)
-    mLRS              Tx Ser Port = cbridge, any ArduPilot (MAVLink)
-  The code is in /SCRIPTS/APPARAM/: core.lua (links, requests), list.lua (the tabs), ui_color.lua
+  Param Editor for EdgeTX (SYS > Tools): read and change flight controller settings from the radio.
+    ArduPilot   S.Port / F.Port passthrough (SERIALn_PROTOCOL 10); ELRS / Crossfire with ArduPlane
+                Stratos v2.2.1+ (MAVlite over CRSF); mLRS Tx Ser Port = cbridge (MAVLink)
+    INAV 9.1+, Betaflight 4.5 / 2025.12   MSP over ELRS / Crossfire, S.Port / F.Port or mLRS
+  The code is in /SCRIPTS/PARAMED/: pick.lua (which engine), core.lua (ArduPilot), mspcore.lua (INAV,
+  Betaflight), list.lua / ilist.lua / bflist.lua (the tabs), ui_color.lua
   (colour screens, touch) or ui_bw.lua (128x64 / 212x64). custom.txt there adds a CUSTOM tab;
   settings.txt keeps the telemetry source.
   EdgeTX pauses telemetry scripts while a tool runs, so this one reads the telemetry queues itself.
@@ -37,8 +38,9 @@ if rawget(_G, "table") == nil then
   table = T
 end
 
-local ROOT = "/SCRIPTS/APPARAM/"
-local TITLE = "AP Param Editor"
+local ROOT = "/SCRIPTS/PARAMED/"
+local TITLE = "Param Editor"
+local VERSION = "0.2.0"
 local C, U, err = nil, nil, nil
 local colour = false
 local base = getTime()
@@ -59,8 +61,14 @@ local IO = {
     if not crossfireTelemetryPush then return false end
     return crossfireTelemetryPush(f.cmd, f.data)
   end,
+  version = VERSION,
+  loadCore = function() return load("core.lua") end,
+  loadMsp = function() return load("mspcore.lua") end,
   loadList = function() return load("list.lua") end,
+  loadInav = function() return load("ilist.lua") end,
+  loadBf = function() return load("bflist.lua") end,
   customPath = ROOT .. "custom.txt",
+  inavCustomPath = ROOT .. "custom_inav.txt",
   settingsPath = ROOT .. "settings.txt",
   readFile = function(path)
     local f = io.open(path, "r")
@@ -97,9 +105,9 @@ local function init()
   local ok, e = pcall(function()
     colour = lcd.RGB ~= nil and (LCD_W or 0) >= 320
     local ui = colour and "ui_color.lua" or "ui_bw.lua"
-    precompile({ "core.lua", "list.lua", ui })
-    C = load("core.lua")(IO)
-    if type(APPARAM_TEST) == "table" then APPARAM_TEST.C = C end   -- off-radio tests only
+    precompile({ "pick.lua", "core.lua", "list.lua", "mspcore.lua", "ilist.lua", "bflist.lua", ui })
+    C = load("pick.lua")(IO)
+    if type(PARAMED_TEST) == "table" then PARAMED_TEST.C = C end   -- off-radio tests only
     U = load(ui)(C, TITLE)
   end)
   if not ok then err = tostring(e) end

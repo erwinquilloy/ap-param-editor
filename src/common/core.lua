@@ -1,5 +1,6 @@
 --[[
-  AP Param Editor, engine (EdgeTX and Ethos share this file byte for byte).
+  Param Editor, ArduPilot engine (EdgeTX and Ethos share this file byte for byte). INAV and
+  Betaflight: mspcore.lua, chosen by pick.lua.
   Reads and changes ArduPilot parameters from the radio over the link the model already has:
 
     S.Port / F.Port    any ArduPilot with FrSky passthrough telemetry (SERIALn_PROTOCOL 10, or
@@ -115,7 +116,7 @@ end
 
 return function(io)
   local C = { BITS = BITS, skipped = skipped, skipCount = skipCount, f2b = f2b, b2f = b2f }
-  C.VERSION = "0.1.1"
+  C.VERSION = io.version or "?"
   C.fc, C.link, C.armed, C.airEdits = nil, nil, false, false   -- Air edits OFF on every start
   -- telemetry source: AUTO picks whichever brought ArduPilot frames last (mLRS bridge, then CRSF,
   -- then S.Port); the others use that link only (two links at once, or a link Auto mistakes)
@@ -142,6 +143,7 @@ return function(io)
   local function crAlive(now) return now - seenCr < 3 or (now - seenCrNat < 3 and now - seenCr < 30) end
   local function heard(t) lastRx = t C.fc = "ArduPilot" end
   function C.alive() return clock() - lastRx < 3 end
+  function C.fcText() return C.fc or "-" end   -- the tab list's "Flight controller" row
 
   local function pushMsg(text, sev)
     local m = C.msgs
@@ -637,8 +639,8 @@ return function(io)
       end
     end
     if C.fc == nil then
-      if clock() - seenEnv < 3 then return { "Waiting for ArduPilot", "mLRS bridge on,", "no HEARTBEAT yet" } end
-      return { "Waiting for ArduPilot", "S.Port / F.Port passthrough,", "ELRS / TBS (Stratos 2.2.1+)", "or mLRS (Tx Ser Port cbridge)" }
+      if clock() - seenEnv < 3 then return { "Waiting for the flight controller", "mLRS bridge on,", "no ArduPilot HEARTBEAT yet" } end
+      return { "Waiting for the flight controller", "ArduPilot, INAV 9.1+ or", "Betaflight 4.5 / 2025.12" }
     end
     if not C.alive() then return { "No telemetry" } end
     if quietAt then

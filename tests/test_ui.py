@@ -1,7 +1,7 @@
 """
 UI tests: ui_color.lua at several radio screen sizes and ui_bw.lua at 128x64 / 212x64, driven by
 keys and taps against the fake flight controllers of test_core.py; every screen saved as a PNG in
-tests/out/ (fonts approximate). Then the two platform entry scripts (EdgeTX APParam.lua, Ethos
+tests/out/ (fonts approximate). Then the two platform entry scripts (EdgeTX ParamEd.lua, Ethos
 main.lua) run once each with stubbed radio APIs, from the built dist/ folders.
 
   python tools/build.py && python tests/test_ui.py
@@ -61,7 +61,7 @@ def colour(ver, kind, w, h):
     print(tag)
     R = Rig(ver, kind, "SERVO1_TRIM, Aileron trim, 800, 2200, 1\n")
     L = R.L
-    U = L.eval('function(f, C) return f(C, "AP Param Editor") end')(
+    U = L.eval('function(f, C) return f(C, "Param Editor") end')(
         L.eval('dofile')(os.path.join(SRC, 'ui_color.lua').replace('\\', '/')), R.C)
     cv = Canvas(L, w, h, big=w >= 800)
     def paint(name=None):
@@ -157,7 +157,7 @@ def mono(ver, w):
     R = Rig(ver, 'sport')
     L = R.L
     m = Mono(L, w)
-    U = L.eval('function(f, C) return f(C, "AP Param Editor") end')(
+    U = L.eval('function(f, C) return f(C, "Param Editor") end')(
         L.eval('dofile')(os.path.join(SRC, '..', 'edgetx', 'ui_bw.lua').replace('\\', '/')), R.C)
     U.paint(); m.save(tag + '_0_waiting')
     R.until(lambda: R.C.blocked is None and 'VTOL' in R.tabs(), 20)
@@ -180,7 +180,7 @@ def mono(ver, w):
 
 
 def edgetx_entry(ver):
-    """APParam.lua from dist/ with EdgeTX stubs: S.Port answers from the fake FC."""
+    """ParamEd.lua from dist/ with EdgeTX stubs: S.Port answers from the fake FC."""
     print('edgetx entry lua%d' % ver)
     R = Rig(ver, 'sport')
     L = R.L
@@ -212,11 +212,11 @@ def edgetx_entry(ver):
       local ls = loadScript
       loadScript = function(p, m) LOADS[#LOADS + 1] = p return ls(p, m) end
     ''')
-    tool = L.eval('dofile')(root + '/SCRIPTS/TOOLS/APParam.lua')
+    tool = L.eval('dofile')(root + '/SCRIPTS/TOOLS/ParamEd.lua')
     tool.init()
     # TX12 MK2 first run: each file compiled alone (and dropped) before any is kept in memory
     loads = [G.LOADS[i + 1].split('/')[-1] for i in range(len(G.LOADS))]
-    check(loads[:3] == ['core.lua', 'list.lua', 'ui_color.lua'] and loads[3:5] == ['core.lua', 'ui_color.lua'],
+    check(loads[:7] == ['pick.lua', 'core.lua', 'list.lua', 'mspcore.lua', 'ilist.lua', 'bflist.lua', 'ui_color.lua'] and loads[7:9] == ['pick.lua', 'core.lua'] and 'ui_color.lua' in loads[9:],
           'precompile order: %s' % loads)
     events = {i: v for i, v in enumerate([0] * 400)}
     events[200] = 3  # ENTER on the first tab: FLIGHT
@@ -278,7 +278,7 @@ def edgetx_shared_queue(entry_path=None, label='built'):
         return True
     G.crossfireTelemetryPush = push
     G.sportTelemetryPush = lambda *a: True
-    tool = L.eval('dofile')(entry_path or (root + '/SCRIPTS/TOOLS/APParam.lua'))
+    tool = L.eval('dofile')(entry_path or (root + '/SCRIPTS/TOOLS/ParamEd.lua'))
     def tick(ev=0):
         R.t += 0.05
         frames = []
@@ -287,9 +287,9 @@ def edgetx_shared_queue(entry_path=None, label='built'):
         frames += getattr(R, 'crsf_down', []); R.crsf_down = []
         for cmd, d in frames: G.qpush(len(d) + 2, cmd, L.table_from(d))
         return tool.run(ev, None)
-    G.APPARAM_TEST = L.table()
+    G.PARAMED_TEST = L.table()
     tool.init()
-    C = G.APPARAM_TEST.C
+    C = G.PARAMED_TEST.C
     for _ in range(100): tick()
     ready = C.blocked is None and C.link == 'CRSF'
     tabs = [C.tabs()[i + 1] for i in range(len(C.tabs()))]
@@ -311,7 +311,7 @@ def ethos_entry():
     R = Rig(54, 'crsf')
     L = R.L
     G = L.globals()
-    root = os.path.join(DIST, 'Ethos', 'scripts', 'apparam').replace('\\', '/')
+    root = os.path.join(DIST, 'Ethos', 'scripts', 'parameditor').replace('\\', '/')
     G.ROOTDIR = root
     pushed = []
     G.pypush = lambda cmd, data: (pushed.append(int(cmd)), R.lite_crsf(int(data[5]), bytes([int(data[i + 1]) for i in range(5, len(data))])) if int(cmd) == 0x80 else None, True)[2]
@@ -344,10 +344,10 @@ def ethos_entry():
       local s1 = sensor()
       crsf = { getSensor = function() if not S1 then S1 = s1 return s1 end return { popFrame = function() return nil end, pushFrame = function() return true end } end }
     ''')
-    G.APPARAM_TEST = L.table()
+    G.PARAMED_TEST = L.table()
     L.eval('dofile')(root + '/main.lua').init()
     T = G.TOOL
-    check(T is not None and T.name == 'AP Param Editor' and T.icon == 'icon.png', 'registered with icon')
+    check(T is not None and T.name == 'Param Editor' and T.icon == 'icon.png', 'registered with icon')
     w = T.create()
     for _ in range(300):
         R.t += 0.05
@@ -370,8 +370,8 @@ def ethos_entry():
         R.crsf_down = []
         T.wakeup(w)
         T.paint(w)
-    check(0x80 in pushed and 0xAA in pushed, 'pushed MAVlite and heartbeat: %s' % sorted(set(pushed)))
-    EC = G.APPARAM_TEST.C
+    check(0x80 in pushed and 0x81 in pushed and 0xAA not in pushed, 'pushed MAVlite and heartbeat (0x81): %s' % sorted(set(pushed)))
+    EC = G.PARAMED_TEST.C
     got, n = EC.progress()
     print('   link %s, %s/%s FLIGHT rows answered, %s' % (EC.link, got, n, EC.diagText()))
     check(EC.link == 'CRSF' and EC.blocked is None, 'Ethos on CRSF, not blocked')

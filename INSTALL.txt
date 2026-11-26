@@ -1,32 +1,43 @@
-AP Param Editor - read and change ArduPilot parameters from your radio
-=======================================================================
+Param Editor - read and change flight controller settings from your radio
+==========================================================================
+ArduPilot, INAV 9.1 or later, and Betaflight 4.5 / 2025.12. (Was "AP Param Editor" up to 0.1.1.)
 
 INSTALL
   EdgeTX (colour or black-and-white radios, EdgeTX 2.9 or later)
     Copy the SCRIPTS folder from the zip to the SD card root (it merges with yours):
-      /SCRIPTS/TOOLS/APParam.lua
-      /SCRIPTS/APPARAM/   (core.lua, list.lua, ui_color.lua, ui_bw.lua, custom.txt)
-    Run it: SYS > Tools > AP Param Editor
+      /SCRIPTS/TOOLS/ParamEd.lua
+      /SCRIPTS/PARAMED/   (pick.lua, core.lua, mspcore.lua, list.lua, ilist.lua, bflist.lua,
+                           ui_color.lua, ui_bw.lua, custom.txt, custom_inav.txt)
+    Run it: SYS > Tools > Param Editor
 
   FrSky Ethos (X20, X20S, X18, X10, X12 ...)
     Copy the scripts folder from the zip to the SD card root:
-      /scripts/apparam/   (main.lua, icon.png, core.lua, list.lua, ui_color.lua, custom.txt)
-    Restart the radio. Run it: System > Tools > AP Param Editor (the slider icon)
+      /scripts/parameditor/   (main.lua, icon.png and the same files as above, without ui_bw.lua)
+    Restart the radio. Run it: System > Tools > Param Editor (the slider icon)
+
+  Updating from AP Param Editor 0.1.x: delete the old /SCRIPTS/TOOLS/APParam.lua and
+  /SCRIPTS/APPARAM/ (EdgeTX) or /scripts/apparam/ (Ethos). Copy custom.txt over first if you
+  changed it.
+
+WHICH FLIGHT CONTROLLER
+  The tool finds out by itself: ArduPilot's own telemetry at once; otherwise, after a few seconds
+  of telemetry, it asks over MSP whether it is INAV or Betaflight. The tab list shows it in the
+  "Flight controller" row.
 
 TELEMETRY (pick it on the first screen: "Telemetry", or leave it on Auto)
-  S.Port / F.Port      any ArduPilot with FrSky passthrough telemetry
-                       (SERIALn_PROTOCOL 10 on the receiver's port, or F.Port with passthrough)
-  ELRS / TBS (CRSF)    ArduPlane Stratos v2.2.1 or later (parameters over CRSF)
-  mLRS (MAVLink)       any ArduPilot; in the mLRS Tx module set Tx Ser Port = cbridge
-                       (mLRS 1.4.04 or later; 1.4.00 / 1.4.02 have no cbridge). Since 0.1.1
-                       the tool uses mLRS's own bridge frames (0x81 / 0x82): 0.1.0 used the
-                       CRSF MAVLink frames (0xAA), which mLRS 1.5.00 sends wrong (fixed in
-                       mLRS 1.5.01).
-  Auto uses whichever brings ArduPilot telemetry. The choice is kept in settings.txt.
+  ArduPilot
+    S.Port / F.Port      FrSky passthrough telemetry (SERIALn_PROTOCOL 10 on the receiver's
+                         port, or F.Port with passthrough)
+    ELRS / TBS (CRSF)    ArduPlane Stratos v2.2.1 or later (parameters over CRSF)
+    mLRS                 Tx Ser Port = cbridge (mLRS 1.4.04 or later)
+  INAV 9.1+ and Betaflight 4.5 / 2025.12 (MSP over the radio link)
+    ELRS / TBS (CRSF)    CRSF telemetry on (INAV / Betaflight do the rest)
+    S.Port / F.Port      SmartPort telemetry on the receiver's port
+    mLRS                 Tx Ser Port = cbridge, with mLRS's MSP-over-cbridge support
+  INAV 9.0.x answers without the values over the radio link (fixed in INAV 9.1): update.
+  Betaflight before 4.5 has a different layout: not supported.
+  Auto uses whichever link brings telemetry. The choice is kept in settings.txt.
   NOT SUPPORTED: ELRS in MAVLink mode (ELRS Lua "Link Mode" = MAVLink), with any firmware.
-                       The ELRS receiver passes only MAVLink to the flight controller and
-                       the ELRS module returns only telemetry: parameter requests never get
-                       through. Set Link Mode = Normal (CRSF), or use S.Port / F.Port, or mLRS.
 
 USE
   Wheel or +/-    move; in the editor: change the value
@@ -36,13 +47,19 @@ USE
                   editor buttons -10 / - / + / +10, Back, Save
 
   A value is "Saved and verified" only when the flight controller reads back the same value.
-  A save is sent once: on "No answer: check in a GCS", look before trying again.
-  Armed: view only. "Air edits" ON allows saving any parameter while armed (in flight the
-  change takes effect at once - small steps). It is OFF again every time the tool is opened.
-  "n/a" = this flight controller has no such parameter (another vehicle or firmware version).
-  The VTOL tabs appear when Q_ENABLE = 1.
+  A save is sent once: on "No answer", look in a GCS / Configurator before trying again.
+  INAV and Betaflight keep a change in memory until it is stored: the tool stores it at once when
+  disarmed ("Saved, verified and stored"), or after the disarm ("Set now, stored after the
+  disarm" - keep the tool open until it says stored).
+  Armed: view only. "Air edits" ON allows saving any setting while armed (in flight the change
+  takes effect at once - small steps). It is OFF again every time the tool is opened.
+  "n/a" = this flight controller has no such setting (another vehicle, build or version).
+  ArduPilot: the VTOL tabs appear when Q_ENABLE = 1.
+  INAV VTOL: the plane PIDs can be changed while flying as a plane, the hover PIDs while hovering
+  (INAV keeps them in the profile of the active platform).
+  Betaflight: the PIDs, rates and D-term filters of the ACTIVE profile.
 
-CUSTOM TAB
-  Edit custom.txt (in /SCRIPTS/APPARAM/ or /scripts/apparam/): one parameter per line,
-    NAME, label, min, max, step
-  Only NAME is needed. Any vehicle (Copter, Rover...) works this way. Up to 40 lines.
+CUSTOM TABS
+  ArduPilot: custom.txt, one parameter per line:   NAME, label, min, max, step
+  INAV:      custom_inav.txt, one setting per line by its CLI name:   name, label, min, max, step
+  Only the name is needed. Up to 40 lines. (Betaflight has no settings by name over MSP.)

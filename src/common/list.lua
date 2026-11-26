@@ -1,5 +1,5 @@
 --[[
-  AP Param Editor: the parameters it shows, tab by tab (ArduPlane 4.7 / Stratos v2.2 names, ranges
+  Param Editor: the ArduPilot parameters it shows, tab by tab (ArduPlane 4.7 / Stratos v2.2 names, ranges
   and option names; the same rows as OmniDeck's PARAMS page). Any other parameter, or another
   vehicle's: the CUSTOM tab (custom.txt beside this file).
 
