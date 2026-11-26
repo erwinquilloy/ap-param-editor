@@ -2,11 +2,11 @@
 
 Read and change flight controller settings from an EdgeTX or Ethos radio, without a laptop: **ArduPilot, INAV 9.1+ and Betaflight 4.5 / 2025.12 / 2026.6**. (Called "Param Editor" in 0.2.0 and "AP Param Editor" up to 0.1.1, when it was ArduPilot only. A companion to [OmniDeck](https://github.com/erwinquilloy/OmniDeck).)
 
-- **Radios:** EdgeTX colour (any screen size, touch) and black-and-white (128x64, 212x64); FrSky Ethos (System > Tools).
+- **Radios:** EdgeTX colour (any screen size, touch) and black-and-white (128x64, 212x64); FrSky Ethos. It is listed as **OmniDeck Param Editor** in SYS > Tools (EdgeTX) and System > Tools (Ethos); on a 128x64 screen the title bar keeps the short "PARAM EDITOR".
 - **Flight controller:** found by itself. ArduPilot from its own telemetry; otherwise the tool asks over MSP whether it is INAV or Betaflight. The tab list shows which.
 - **Links:**
   - ArduPilot: S.Port / F.Port passthrough (MAVlite), ELRS / TBS (ArduPlane Stratos v2.2.1+, MAVlite over CRSF), mLRS cbridge (MAVLink).
-  - INAV and Betaflight: MSP over ELRS / TBS, S.Port / F.Port, or mLRS cbridge.
+  - INAV and Betaflight: MSP over ELRS / TBS, S.Port / F.Port. Over mLRS (cbridge) only with a test mLRS Tx firmware ("MSP over cbridge"): stock mLRS drops the radio's MSP.
   - The telemetry source can be Auto or chosen by hand.
 - **Not supported: ELRS in MAVLink mode** (ELRS Lua "Link Mode" = MAVLink), with any firmware: parameter requests never get through. Use Link Mode = Normal (CRSF), S.Port / F.Port, or mLRS with cbridge.
 - **Tabs:**
@@ -19,10 +19,19 @@ The INAV and Betaflight support is the same as [OmniDeck](https://github.com/erw
 
 ## Download
 
-From the [releases page](https://github.com/erwinquilloy/param-editor/releases): `OmniDeck_Param_Editor_EdgeTX_v0.2.1.zip` for EdgeTX (colour and black-and-white) or `OmniDeck_Param_Editor_Ethos_v0.2.1.zip` for FrSky Ethos. Install steps are in [INSTALL.txt](INSTALL.txt), also inside each zip. Updating from AP Param Editor 0.1.x: delete the old `APPARAM` / `apparam` folder (and `APParam.lua` on EdgeTX); the new one is `PARAMED` / `parameditor`.
+From the [releases page](https://github.com/erwinquilloy/param-editor/releases): `OmniDeck_Param_Editor_EdgeTX_v0.2.1.zip` for EdgeTX (colour and black-and-white) or `OmniDeck_Param_Editor_Ethos_v0.2.1.zip` for FrSky Ethos. Install steps are in [INSTALL.txt](INSTALL.txt), also inside each zip. Updating from AP Param Editor 0.1.x: delete the old `APPARAM` / `apparam` folder (and `APParam.lua` on EdgeTX); the new one is `PARAMED` / `parameditor`. Updating from 0.2.0: copy the new files over the old ones and delete the `.luac` files in `PARAMED` / `parameditor` (and `ParamEd.luac` in `SCRIPTS/TOOLS`) so the radio compiles the new code; `custom.txt`, `custom_inav.txt` and `settings.txt` are yours to keep (the zip has default `custom` files: copy yours back if you changed them).
 
 - **ArduPilot over ELRS / TBS (CRSF) needs ArduPlane Stratos v2.2.1 or later:** [releases](https://github.com/erwinquilloy/ardupilot/releases). Upstream ArduPilot: S.Port / F.Port and mLRS work as they are; parameters over CRSF wait on [ArduPilot#35160](https://github.com/ArduPilot/ardupilot/pull/35160).
 - **INAV 9.0.x** answers the setting requests without the values over the radio link (fixed in 9.1): update to 9.1 or later.
+
+## Versions
+
+| Version | What changed |
+| --- | --- |
+| 0.2.1 | Renamed **OmniDeck Param Editor**. Betaflight 2026.6 (MSP API 1.48) besides 4.5 and 2025.12, and 19 more Betaflight settings: FF transition / averaging / smoothing / jitter / boost / max rate limit, a TUNE tab (anti gravity, I-term relax cutoff, TPA mode / rate / breakpoint, throttle boost, dynamic idle, motor output limit, vbat sag, thrust linear, angle limit), throttle limit type and percent. Choice settings by name. A Betaflight list that can't be loaded says why |
+| 0.2.0 | "Param Editor": INAV 9.1+ and Betaflight 4.5 / 2025.12 besides ArduPilot; mLRS bridge on mLRS's own frames (0x81 / 0x82) |
+| 0.1.1 | mLRS bridge on 0x81 / 0x82 (the CRSF MAVLink frames 0xAA are sent wrong by the first mLRS 1.5.00 build) |
+| 0.1.0 | "AP Param Editor": ArduPilot over S.Port / F.Port, ELRS / TBS (Stratos) and mLRS |
 
 ## Tested on radios
 
