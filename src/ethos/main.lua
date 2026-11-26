@@ -2,7 +2,7 @@
   Param Editor for FrSky Ethos (System > Tools): read and change flight controller settings.
     ArduPilot   S.Port / F.Port passthrough (SERIALn_PROTOCOL 10); ELRS / Crossfire with ArduPlane
                 Stratos v2.2.1+ (MAVlite over CRSF); mLRS Tx Ser Port = cbridge (MAVLink)
-    INAV 9.1+, Betaflight 4.5 / 2025.12   MSP over ELRS / Crossfire, S.Port / F.Port or mLRS
+    INAV 9.1+, Betaflight 4.5 - 2026.6  MSP over ELRS / Crossfire, S.Port / F.Port or mLRS
   Files in /scripts/parameditor/: pick.lua (which engine), core.lua (ArduPilot), mspcore.lua (INAV,
   Betaflight), list.lua / ilist.lua / bflist.lua (tabs), ui_color.lua (screen), custom.txt and
   custom_inav.txt (CUSTOM tabs), settings.txt (telemetry source).

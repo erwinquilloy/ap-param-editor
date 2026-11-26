@@ -1,6 +1,6 @@
 # Param Editor
 
-Read and change flight controller settings from an EdgeTX or Ethos radio, without a laptop: **ArduPilot, INAV 9.1+ and Betaflight 4.5 / 2025.12**. (Called "AP Param Editor" up to 0.1.1, when it was ArduPilot only.)
+Read and change flight controller settings from an EdgeTX or Ethos radio, without a laptop: **ArduPilot, INAV 9.1+ and Betaflight 4.5 / 2025.12 / 2026.6**. (Called "AP Param Editor" up to 0.1.1, when it was ArduPilot only.)
 
 - **Radios:** EdgeTX colour (any screen size, touch) and black-and-white (128x64, 212x64); FrSky Ethos (System > Tools).
 - **Flight controller:** found by itself. ArduPilot from its own telemetry; otherwise the tool asks over MSP whether it is INAV or Betaflight. The tab list shows which.
@@ -12,7 +12,7 @@ Read and change flight controller settings from an EdgeTX or Ethos radio, withou
 - **Tabs:**
   - ArduPilot: ArduPlane FLIGHT, LAUNCH, RETURN, FAILSAFE, ARMING (check-by-check skip editor), TECS, LANDING, PID, VTOL / Q PID (with Q_ENABLE 1), and a CUSTOM tab from `custom.txt` for any parameter on any vehicle.
   - INAV 9.1+: FLIGHT, LAUNCH, NAV THR, RTH, LANDING, MISSION, FW PID, MC PID, with INAV's own limits and option names, and a CUSTOM tab from `custom_inav.txt` for any setting by its CLI name.
-  - Betaflight 4.5 / 2025.12: PID, FF D, RATES (labels follow the rates type), FILTERS, for the active profile.
+  - Betaflight 4.5 / 2025.12 / 2026.6: PID, FF D (incl. feedforward smoothing, jitter, boost), TUNE (anti gravity, I-term relax cutoff, TPA, throttle boost, dynamic idle, motor output limit, vbat sag, thrust linear, angle limit), RATES (labels follow the rates type, throttle limit), FILTERS, for the active profile.
 - **Safety:** one request at a time; saves verified by read-back and never repeated automatically; view-only while armed unless Air edits is on (OFF again each time the tool opens). INAV and Betaflight changes are stored (EEPROM) only when the flight controller says it is disarmed.
 
 The INAV and Betaflight support is the same as [OmniDeck](https://github.com/erwinquilloy/OmniDeck)'s PARAMS page.

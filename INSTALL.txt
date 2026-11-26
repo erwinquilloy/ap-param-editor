@@ -1,6 +1,6 @@
 Param Editor - read and change flight controller settings from your radio
 ==========================================================================
-ArduPilot, INAV 9.1 or later, and Betaflight 4.5 / 2025.12. (Was "AP Param Editor" up to 0.1.1.)
+ArduPilot, INAV 9.1 or later, and Betaflight 4.5 / 2025.12 / 2026.6. (Was "AP Param Editor" up to 0.1.1.)
 
 INSTALL
   EdgeTX (colour or black-and-white radios, EdgeTX 2.9 or later)
@@ -30,7 +30,7 @@ TELEMETRY (pick it on the first screen: "Telemetry", or leave it on Auto)
                          port, or F.Port with passthrough)
     ELRS / TBS (CRSF)    ArduPlane Stratos v2.2.1 or later (parameters over CRSF)
     mLRS                 Tx Ser Port = cbridge (mLRS 1.4.04 or later)
-  INAV 9.1+ and Betaflight 4.5 / 2025.12 (MSP over the radio link)
+  INAV 9.1+ and Betaflight 4.5 / 2025.12 / 2026.6 (MSP over the radio link)
     ELRS / TBS (CRSF)    CRSF telemetry on (INAV / Betaflight do the rest)
     S.Port / F.Port      SmartPort telemetry on the receiver's port
     mLRS                 Tx Ser Port = cbridge, with mLRS's MSP-over-cbridge support
@@ -57,7 +57,8 @@ USE
   ArduPilot: the VTOL tabs appear when Q_ENABLE = 1.
   INAV VTOL: the plane PIDs can be changed while flying as a plane, the hover PIDs while hovering
   (INAV keeps them in the profile of the active platform).
-  Betaflight: the PIDs, rates and D-term filters of the ACTIVE profile.
+  Betaflight: the PIDs, feedforward, TUNE settings (anti gravity, TPA, throttle and motor), rates
+  and filters of the ACTIVE profile.
 
 CUSTOM TABS
   ArduPilot: custom.txt, one parameter per line:   NAME, label, min, max, step

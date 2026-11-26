@@ -12,7 +12,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import lupa
 from fake_inav_settings import FakeInav
-from fake_bf import FakeBF, PID, RC
+from fake_bf import FakeBF, PID, ADV, RC
 
 SRC = os.path.join(HERE, '..', 'src', 'common').replace('\\', '/')
 fails = 0
@@ -184,8 +184,8 @@ def betaflight(ver, api):
     C = R.C
     ok = R.until(lambda: C.kind() == 'MSP' and C.blocked is None)
     check(ok, 'Betaflight ready')
-    check(C.fcText().startswith('Betaflight ' + ('4.5' if api == 46 else '2025.12')), 'FC row: %s' % C.fcText())
-    check(R.tabs() == ['PID', 'FF D', 'RATES', 'FILTERS'], 'BF tabs %s' % R.tabs())
+    check(C.fcText().startswith('Betaflight ' + {46: '4.5', 47: '2025.12', 48: '2026.6'}[api]), 'FC row: %s' % C.fcText())
+    check(R.tabs() == ['PID', 'FF D', 'TUNE', 'RATES', 'FILTERS'], 'BF tabs %s' % R.tabs())
     check(R.read_tab('PID'), 'PID read')
     before = fc.value(PID, 0)
     check(R.text('p_roll') == str(before), 'roll P %s == %s' % (R.text('p_roll'), before))
@@ -199,6 +199,19 @@ def betaflight(ver, api):
     check(R.read_tab('FF D'), 'FF D read')
     want = 'd_min_roll' if api == 46 else 'd_max_roll'
     check(want in [x[1] for x in R.rows()], 'version names (%s)' % want)
+    check(R.read_tab('FILTERS'), 'FILTERS read (2026.6: longer block)')
+    check('dyn_notch_count' in [x[1] for x in R.rows()], 'filter rows')
+    # the rows added for 0.2.x: TUNE tab, options shown by name, one field written
+    check(R.read_tab('TUNE'), 'TUNE read')
+    check(R.text('tpa_mode') == 'PD', 'TPA mode by name: %s' % R.text('tpa_mode'))
+    check(R.text('tpa_breakpoint') == '1350 us', 'TPA breakpoint %s' % R.text('tpa_breakpoint'))
+    adv0 = list(fc.block(ADV))
+    R.edit('anti_gravity_gain', 1)
+    check(fc.value(ADV, 21, 2) == 85, 'anti gravity written (%s)' % fc.value(ADV, 21, 2))
+    a = fc.block(ADV)
+    check([i for i in range(len(a)) if a[i] != adv0[i]] == [21], 'only anti gravity changed')
+    check(R.read_tab('RATES'), 'RATES read again')
+    check(R.text('throttle_limit_type') == 'OFF', 'throttle limit by name: %s' % R.text('throttle_limit_type'))
 
 
 def ardupilot_stays(ver):
@@ -226,6 +239,7 @@ for v in (52, 54):
     inav_old(v)
     betaflight(v, 46)
     betaflight(v, 47)
+    betaflight(v, 48)
     ardupilot_stays(v)
     nothing_answers(v)
 

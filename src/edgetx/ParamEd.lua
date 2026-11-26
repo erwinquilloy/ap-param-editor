@@ -3,7 +3,7 @@ local toolName = "TNS|Param Editor|TNE"
   Param Editor for EdgeTX (SYS > Tools): read and change flight controller settings from the radio.
     ArduPilot   S.Port / F.Port passthrough (SERIALn_PROTOCOL 10); ELRS / Crossfire with ArduPlane
                 Stratos v2.2.1+ (MAVlite over CRSF); mLRS Tx Ser Port = cbridge (MAVLink)
-    INAV 9.1+, Betaflight 4.5 / 2025.12   MSP over ELRS / Crossfire, S.Port / F.Port or mLRS
+    INAV 9.1+, Betaflight 4.5 - 2026.6  MSP over ELRS / Crossfire, S.Port / F.Port or mLRS
   The code is in /SCRIPTS/PARAMED/: pick.lua (which engine), core.lua (ArduPilot), mspcore.lua (INAV,
   Betaflight), list.lua / ilist.lua / bflist.lua (the tabs), ui_color.lua
   (colour screens, touch) or ui_bw.lua (128x64 / 212x64). custom.txt there adds a CUSTOM tab;

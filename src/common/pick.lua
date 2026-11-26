@@ -1,7 +1,7 @@
 --[[
   Param Editor: which engine talks to the flight controller (EdgeTX and Ethos share this file).
     core.lua      ArduPilot (MAVlite over S.Port / CRSF, MAVLink through the mLRS bridge)
-    mspcore.lua   INAV 9.1+ and Betaflight 4.5 / 2025.12 (MSP over CRSF, S.Port, the mLRS bridge)
+    mspcore.lua   INAV 9.1+ and Betaflight 4.5 / 2025.12 / 2026.6 (MSP over CRSF, S.Port, the mLRS bridge)
   Only one is in memory. The tool starts with ArduPilot's; when telemetry comes in but nothing
   from ArduPilot (no passthrough frame, no ArduPilot HEARTBEAT) for a few seconds, the MSP one asks
   the flight controller what it is. ArduPilot heard again, or no MSP answer: back to ArduPilot's

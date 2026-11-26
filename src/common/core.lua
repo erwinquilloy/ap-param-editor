@@ -640,7 +640,7 @@ return function(io)
     end
     if C.fc == nil then
       if clock() - seenEnv < 3 then return { "Waiting for the flight controller", "mLRS bridge on,", "no ArduPilot HEARTBEAT yet" } end
-      return { "Waiting for the flight controller", "ArduPilot, INAV 9.1+ or", "Betaflight 4.5 / 2025.12" }
+      return { "Waiting for the flight controller", "ArduPilot, INAV 9.1+ or", "Betaflight 4.5 to 2026.6" }
     end
     if not C.alive() then return { "No telemetry" } end
     if quietAt then

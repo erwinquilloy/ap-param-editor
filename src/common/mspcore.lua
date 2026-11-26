@@ -9,7 +9,7 @@
                      MSP2_COMMON_SET_SETTING 0x1004 (name\0, value); MSP2_COMMON_SETTING 0x1003
                      (name\0) -> value (the read-back after a save). INAV 9.0.x answers the setting
                      commands without name and value over the radio link (fixed in 9.1.0-RC1).
-    Betaflight       4.5 (MSP API 1.46) and 2025.12 (1.47): fixed blocks (bflist.lua), read, the one
+    Betaflight       4.5 (MSP API 1.46), 2025.12 (1.47) and 2026.6 (1.48): fixed blocks (bflist.lua), read, the one
                      field changed, written back up to the end of its group.
     Both             MSP_EEPROM_WRITE 250 stores; refused while armed, so a change made in flight is
                      stored once the flight controller says it is disarmed.
@@ -133,7 +133,7 @@ return function(io)
                plat = nil, dirty = false, armed = nil, armedAt = nil, statusAt = -10, storeHold = 0 }
   C._in = IN
   local LIST = nil              -- the list module of this FC (ilist / bflist)
-  local BF = nil                -- bflist.lua once a Betaflight 4.5 / 2025.12 answered
+  local BF = nil                -- bflist.lua once a Betaflight 4.5 / 2025.12 / 2026.6 answered
   local blk = {}                -- Betaflight: the last reply of each block
 
   -- ---------------------------------------------------------------- send
@@ -252,7 +252,7 @@ return function(io)
 
   -- Betaflight: a row in list.lua's layout from bflist's (same labels / scale as it has now)
   local function bfRow(src)
-    return { src[2], src[3], src[4], src[5], src[6], src[7], src[8], k = src.k, bf = src.bf,
+    return { src[2], src[3], src[4], src[5], src[6], src[7], src[8], src[9], k = src.k, bf = src.bf,
              rmin = src.rmin, rmax = src.rmax, feat = src.feat, src = src }
   end
   local function bfRelabel()   -- rates_type read: the rate rows' labels, units and scale follow it
@@ -433,7 +433,9 @@ return function(io)
       pend = nil
       local maj, mnr = b[2] or 0, b[3] or 0
       IN.bfapi = string.format("%d.%d", maj, mnr)
-      if err or maj ~= 1 or (mnr ~= 46 and mnr ~= 47) then IN.state = "bfold" return end
+      -- 1.46 = 4.5, 1.47 = 2025.12, 1.48 = 2026.6 (2026.6 only appends: RPM filter fields after
+      -- byte 49 of MSP_FILTER_CONFIG, battery profile after MSP_STATUS_EX; msp.c 2026.6.2)
+      if err or maj ~= 1 or mnr < 46 or mnr > 48 then IN.state = "bfold" return end
       if not BF then
         local ok, mod = pcall(io.loadBf)
         if not ok or type(mod) ~= "table" then IN.state, IN.bfErr = "bfold", tostring(mod) return end
@@ -449,7 +451,7 @@ return function(io)
       pend = nil
       if IN.variant == "BTFL" then
         local y = b[1] or 0
-        if IN.bfapi == "1.47" then y = y + 2000 end   -- 2025.12 sends the year since 2000
+        if IN.bfapi ~= "1.46" then y = y + 2000 end   -- 2025.12 and later send the year since 2000
         IN.ver = err and "?" or string.format("%d.%d.%d", y, b[2] or 0, b[3] or 0)
         IN.state = "ready"
         return
@@ -701,7 +703,8 @@ return function(io)
     local st = IN.state
     if st == "old" then return { "INAV too old", "Param Editor needs INAV 9.1", "or later (settings over the", "radio link, MSPv2)" } end
     if st == "buggy" then return { "INAV " .. (IN.ver or "9.0"), "INAV 9.0 sends no values", "over the radio link:", "update to INAV 9.1 or later" } end
-    if st == "bfold" then return { "Betaflight " .. (IN.bfapi and ("API " .. IN.bfapi) or ""), "Param Editor reads", "Betaflight 4.5 and 2025.12" } end
+    if st == "bfold" and IN.bfErr then return { "Betaflight list", "did not load:", string.sub(IN.bfErr, 1, 60) } end
+    if st == "bfold" then return { "Betaflight " .. (IN.bfapi and ("API " .. IN.bfapi) or ""), "Param Editor reads", "Betaflight 4.5, 2025.12", "and 2026.6" } end
     if st == "notmsp" then return { "Unknown flight controller", "It answered MSP as " .. tostring(IN.variant), "(INAV and Betaflight only)" } end
     if quietAt then
       return { "No answer", "MSP over the radio link:", "ELRS / Crossfire / S.Port need", "INAV 9.1+ or Betaflight 4.5+" }
